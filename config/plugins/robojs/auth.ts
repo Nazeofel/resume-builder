@@ -55,6 +55,11 @@ const config: AuthPluginOptions = {
 						const id = nanoid(21) // Auth.js standard ID format
 
 						// Create user with custom fields in Prisma
+						// Default subscription model for new users:
+						// - subscriptionStatus: INACTIVE (free tier)
+						// - usageCount: 0 (no AI assists used yet)
+						// - usageLimit: 100 (free tier limit: 100 AI assists per month)
+						// - billingPeriodStart/End: null (set when user subscribes via Stripe)
 						const user = await prisma.user.create({
 							data: {
 								id,
@@ -62,7 +67,11 @@ const config: AuthPluginOptions = {
 								email: body.email,
 								name: body.name || body.email.split('@')[0],
 								hash: passwordHash,
-								manaCount: 0
+								subscriptionStatus: 'INACTIVE',
+								usageCount: 0,
+								usageLimit: 100,
+								billingPeriodStart: null,
+								billingPeriodEnd: null
 							}
 						})
 

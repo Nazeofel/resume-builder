@@ -1,6 +1,23 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
+/**
+ * AI Assist Button Component (Presentational)
+ *
+ * This is a presentational component that renders an AI assist button.
+ * AI feature gating should be handled by the parent component or API route.
+ *
+ * Parent components should check subscription status and usage limits before
+ * enabling this button (using the `disabled` prop). Reference the
+ * `src/lib/subscription.ts` utility for checking permissions.
+ *
+ * @example
+ * ```tsx
+ * const user = await getUser()
+ * const canUseAI = canUseAIFeatures(user)
+ * <AIAssistButton disabled={!canUseAI} onClick={handleAIAssist} />
+ * ```
+ */
 export interface AIAssistButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	ariaLabel?: string;

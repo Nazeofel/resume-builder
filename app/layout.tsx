@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import { Space_Grotesk } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/Navbar'
 import { getSession } from '@robojs/auth/client'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
-import { AppProvider } from '@/contexts/AppContext'
+import { JotaiProvider } from '@/components/JotaiProvider'
 
 const spaceGrotesk = Space_Grotesk({
 	weight: ['400', '500', '700'],
@@ -20,39 +19,54 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-	// const cookieStore = await cookies()
-	// const cookieHeader = cookieStore.toString()
+	// Get cookies from Next.js
+	const cookieStore = await cookies()
+	const cookieHeader = cookieStore.toString()
 
-	// const session = await getSession({
-	// 	baseUrl: "http://localhost:3000",
-	// 	headers: {
-	// 		cookie: cookieHeader
-	// 	}
-	// })
+	// Get session using cookies
+	const session = await getSession({
+		baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+		headers: {
+			cookie: cookieHeader
+		}
+	})
 
-	// console.log(session)
+	const isAuthenticated = !!session?.user?.id
 
-	// const isAuthenticated = !!session?.user?.id
+	let userData = null
+	if (isAuthenticated && session?.user?.id) {
+		try {
+			userData = await prisma.user.findUnique({
+				where: { userId: session.user.id },
+				select: {
+					id: true,
+					userId: true,
+					name: true,
+					email: true,
+					subscriptionStatus: true,
+					usageCount: true,
+					usageLimit: true,
+					billingPeriodStart: true,
+					billingPeriodEnd: true
+				}
+			})
+		} catch (error) {
+			console.error('Failed to fetch user data:', error)
+		}
+	}
 
-	// let userData = null
-	// if (isAuthenticated && session.user.id) {
-	// 	try {
-	// 		userData = await prisma.user.findUnique({
-	// 			where: { userId: session.user.id },
-	// 			select: { id: true, userId: true, name: true, email: true, manaCount: true }
-	// 		})
-	// 	} catch (error) {
-	// 		console.error('Failed to fetch user data:', error)
-	// 	}
-	// }
-
-	// const user = userData ? {
-	// 	id: userData.userId,
-	// 	name: userData.name,
-	// 	email: userData.email,
-	// 	mana: userData.manaCount ?? 0,
-	// 	maxMana: 1000
-	// } : undefined
+	const user = userData
+		? {
+				id: userData.userId,
+				name: userData.name,
+				email: userData.email,
+				subscriptionStatus: userData.subscriptionStatus,
+				usageCount: userData.usageCount,
+				usageLimit: userData.usageLimit,
+				billingPeriodStart: userData.billingPeriodStart,
+				billingPeriodEnd: userData.billingPeriodEnd
+			}
+		: undefined
 
 	return (
 		<html lang="en">
@@ -60,10 +74,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 				<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 			</head>
 			<body className={`${spaceGrotesk.className} font-display antialiased`}>
-				<main className="min-h-screen">{children}</main>
-				{/* <AppProvider>
+				<JotaiProvider initialUser={user}>
 					<main className="min-h-screen">{children}</main>
-				</AppProvider> */}
+				</JotaiProvider>
 			</body>
 		</html>
 	)

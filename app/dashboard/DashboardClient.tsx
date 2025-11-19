@@ -8,8 +8,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { ManaDisplay } from '@/components/ManaDisplay'
-import { BuyManaModal } from '@/components/BuyManaModal'
+import { UsageDisplay } from '@/components/UsageDisplay'
+import { SubscriptionModal } from '@/components/SubscriptionModal'
 import { LayoutDashboard, FileText, Settings, Menu, Plus, Edit, Trash2, TrendingUp, Award } from 'lucide-react'
 
 interface DashboardClientProps {
@@ -18,7 +18,8 @@ interface DashboardClientProps {
 		userId: string
 		name: string
 		email: string
-		manaCount: number | null
+		usageCount: number
+		usageLimit: number
 	}
 	resumes: Array<{
 		id: string
@@ -31,7 +32,7 @@ interface DashboardClientProps {
 
 export default function DashboardClient({ user, resumes }: DashboardClientProps) {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-	const [isManaModalOpen, setIsManaModalOpen] = useState(false)
+	const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false)
 
 	const userInitials = 'non'
 	const firstName = 'None'
@@ -73,7 +74,7 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 
 			{/* Footer Section */}
 			<div className="p-4 border-t border-yellow space-y-4">
-				<ManaDisplay mana={user.manaCount ?? 0} maxMana={1000} onClick={() => setIsManaModalOpen(true)} />
+				<UsageDisplay usageCount={user.usageCount} usageLimit={user.usageLimit} onClick={() => setIsSubscriptionModalOpen(true)} />
 				<div className="flex items-center gap-3">
 					<Avatar className="h-10 w-10">
 						<AvatarFallback>{userInitials}</AvatarFallback>
@@ -157,14 +158,14 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 									</CardHeader>
 								</Card>
 
-								{/* Card 2: Mana Remaining */}
+								{/* Card 2: Usage Remaining */}
 								<Card className="border border-yellow bg-yellow">
 									<CardHeader>
-										<CardTitle className="text-sm font-medium text-dark/70">Mana Remaining</CardTitle>
+										<CardTitle className="text-sm font-medium text-dark/70">AI Assists Used</CardTitle>
 										<div className="flex items-center gap-2">
 											<TrendingUp className="h-4 w-4 text-secondary-accent" />
 											<p className="text-3xl font-bold text-dark">
-												{user.manaCount ?? 500}/{1000}
+												{user.usageCount}/{user.usageLimit}
 											</p>
 										</div>
 									</CardHeader>
@@ -172,7 +173,7 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 										<div className="w-full bg-black rounded-full h-2">
 											<div
 												className="bg-primary h-2 rounded-full transition-all duration-300"
-												style={{ width: `${((user.manaCount ?? 500) / 1000) * 100}%` }}
+												style={{ width: `${(user.usageCount / user.usageLimit) * 100}%` }}
 											/>
 										</div>
 									</CardContent>
@@ -266,7 +267,7 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 					</main>
 				</motion.div>
 			</div>
-			<BuyManaModal open={isManaModalOpen} onOpenChange={setIsManaModalOpen} userId={user.userId} />
+			<SubscriptionModal open={isSubscriptionModalOpen} onOpenChange={setIsSubscriptionModalOpen} userId={user.userId} />
 		</>
 	)
 }

@@ -11,7 +11,7 @@ export default async function (request: NextRequest) {
 	try {
 		// Clone the request to read the body
 		const body = await request.json()
-		const { priceId, quantity = 1, userId } = body
+		const { priceId, quantity = 1, userId, mode = 'subscription' } = body
 
 		// Validate required fields
 		if (!userId) {
@@ -32,8 +32,18 @@ export default async function (request: NextRequest) {
 			)
 		}
 
-		// Create Stripe checkout session with userId in metadata
-		// Mana amount will be retrieved from Stripe price metadata in webhook
+		/**
+		 * Subscription Flow Documentation:
+		 *
+		 * 1. This creates a Stripe Checkout session for subscription billing
+		 * 2. The `mode: 'subscription'` parameter enables recurring billing
+		 * 3. User subscription status is updated via webhook after successful payment
+		 *    (see app/api/webhooks/stripe/route.ts for webhook handlers)
+		 * 4. The `metadata.userId` is used by the webhook to identify the user
+		 *    and update their subscription status, usage count, and billing period
+		 * 5. The `subscription_data.metadata.userId` ensures the userId is stored
+		 *    on the Stripe Subscription object itself for renewal and cancellation webhooks
+		 */
 		const session = await stripe.checkout.sessions.create({
 			line_items: [
 				{
@@ -41,16 +51,21 @@ export default async function (request: NextRequest) {
 					quantity: quantity
 				}
 			],
-			mode: 'payment',
+			mode: mode === 'subscription' ? 'subscription' : 'payment',
 			metadata: {
 				userId: userId
 			},
+			subscription_data: mode === 'subscription' ? {
+				metadata: {
+					userId: userId
+				}
+			} : undefined,
 			success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`
 		})
 
 		// Return the checkout URL
-		// Note: Mana will be added ONLY after successful payment via webhook
+		// Subscription status will be updated ONLY after successful payment via webhook
 		return NextResponse.json(
 			{
 				success: true,

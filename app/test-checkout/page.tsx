@@ -188,7 +188,7 @@ export default function TestCheckoutPage() {
               </li>
               <li className="flex gap-2">
                 <span className="font-bold text-gray-900">7.</span>
-                <span>Check your database to confirm mana was added</span>
+                <span>Check your database to confirm subscription usage was updated</span>
               </li>
             </ol>
           </div>

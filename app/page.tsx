@@ -6,7 +6,6 @@ import Hero from '@/components/Hero'
 import Footer from '@/components/Footer'
 export default function HomePage() {
 	// This would come from your auth system
-	const isAuthenticated = true
 
 	const cardVariants = {
 		hidden: { opacity: 0, y: 20 },

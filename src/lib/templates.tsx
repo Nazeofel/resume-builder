@@ -46,6 +46,22 @@ interface TemplateStyleConfig {
 		school: string
 		gpa: string
 	}
+	layout?: 'single-column' | 'sidebar'
+	sidebar?: {
+		container: string
+		sectionTitle: string
+		contactItem: string
+		skillItem: string
+	}
+	mainContent?: {
+		container: string
+	}
+	sidebarSectionLabels?: {
+		contact?: string
+		skills?: string
+		certifications?: string
+		languages?: string
+	}
 }
 
 /** Shared Resume Layout Component */
@@ -55,6 +71,214 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 
 	const hasSummary = summary.trim().length > 0
 
+	// Sidebar section labels with defaults
+	const sidebarLabels = {
+		contact: styles.sidebarSectionLabels?.contact ?? 'Contact',
+		skills: styles.sidebarSectionLabels?.skills ?? 'Skills',
+		certifications: styles.sidebarSectionLabels?.certifications ?? 'Certifications',
+		languages: styles.sidebarSectionLabels?.languages ?? 'Languages'
+	}
+
+	// Sidebar layout rendering
+	if (styles.layout === 'sidebar' && styles.sidebar && styles.mainContent) {
+		return (
+			<div className="bg-white grid grid-cols-3 gap-0 min-h-full">
+				{/* Sidebar (Left Column) */}
+				<div className={styles.sidebar.container}>
+					{/* Contact Info */}
+					<div className="mb-6">
+						<h1 className={styles.header.name}>{contactInfo.fullName || 'Your Name'}</h1>
+						{contactInfo.headline && <p className={styles.header.headline}>{contactInfo.headline}</p>}
+					</div>
+
+					<div className="space-y-6">
+						{/* Contact Details */}
+						{(contactInfo.phone || contactInfo.email || contactInfo.address || contactInfo.linkedin || contactInfo.website) && (
+							<div>
+								<h2 className={styles.sidebar.sectionTitle}>{sidebarLabels.contact}</h2>
+								<div className="mt-3 space-y-2">
+									{contactInfo.phone && <div className={styles.sidebar.contactItem}>{contactInfo.phone}</div>}
+									{contactInfo.email && <div className={styles.sidebar.contactItem}>{contactInfo.email}</div>}
+									{contactInfo.address && <div className={styles.sidebar.contactItem}>{contactInfo.address}</div>}
+									{contactInfo.linkedin && (
+										<div className={styles.sidebar.contactItem}>
+											<a href={contactInfo.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
+												{contactInfo.linkedin}
+											</a>
+										</div>
+									)}
+									{contactInfo.website && (
+										<div className={styles.sidebar.contactItem}>
+											<a href={contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
+												{contactInfo.website}
+											</a>
+										</div>
+									)}
+								</div>
+							</div>
+						)}
+
+						{/* Skills */}
+						{skills.length > 0 && (
+							<div>
+								<h2 className={styles.sidebar.sectionTitle}>{sidebarLabels.skills}</h2>
+								<div className="mt-3 space-y-1">
+									{skills.map((skill, index) => (
+										<div key={index} className={styles.sidebar.skillItem}>
+											{skill.name}
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+
+						{/* Certifications */}
+						{certifications.length > 0 && (
+							<div>
+								<h2 className={styles.sidebar.sectionTitle}>{sidebarLabels.certifications}</h2>
+								<div className="mt-3 space-y-1">
+									{certifications.map((cert, index) => (
+										<div key={index} className={styles.sidebar.skillItem}>
+											{cert.name}
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+
+						{/* Languages */}
+						{languages.length > 0 && (
+							<div>
+								<h2 className={styles.sidebar.sectionTitle}>{sidebarLabels.languages}</h2>
+								<div className="mt-3 space-y-1">
+									{languages.map((lang, index) => (
+										<div key={index} className={styles.sidebar.skillItem}>
+											{lang.name} ({lang.proficiency})
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+					</div>
+				</div>
+
+				{/* Main Content (Right Column) */}
+				<div className={`col-span-2 ${styles.mainContent.container}`}>
+					{/* Summary Section */}
+					{hasSummary && (
+						<section className={styles.section.container}>
+							<h2 className={styles.section.title}>Summary</h2>
+							<p className="text-sm text-text-main mt-3 leading-relaxed">{summary}</p>
+						</section>
+					)}
+
+					{/* Experience Section */}
+					{experiences.length > 0 && (
+						<section className={styles.section.container}>
+							<h2 className={styles.section.title}>Experience</h2>
+							{experiences.map((exp, index) => {
+								const startDate = exp.startDate.trim()
+								const endDate = exp.endDate.trim()
+								const displayEndDate = endDate || 'Present'
+
+								return (
+									<div key={index} className="mt-3">
+										<div className="flex justify-between items-center">
+											<h3 className={styles.experience.jobTitle}>{exp.jobTitle}</h3>
+											{startDate && (
+												<span className={styles.experience.dateRange}>
+													{startDate} - {displayEndDate}
+												</span>
+											)}
+										</div>
+										<p className={styles.experience.company}>
+											{exp.company}
+											{exp.location && ` | ${exp.location}`}
+										</p>
+										{exp.description && typeof exp.description === 'string' && (
+											<ul className={styles.experience.description}>
+												{exp.description
+													.split('\n')
+													.filter((line) => line.trim())
+													.map((line, i) => (
+														<li key={i}>{line}</li>
+													))}
+											</ul>
+										)}
+									</div>
+								)
+							})}
+						</section>
+					)}
+
+					{/* Projects Section */}
+					{projects.length > 0 && (
+						<section className={styles.section.container}>
+							<h2 className={styles.section.title}>Projects</h2>
+							{projects.map((project, index) => (
+								<div key={index} className="mt-3">
+									<h3 className={styles.project.name}>{project.name}</h3>
+									{project.description && <p className={styles.project.description}>{project.description}</p>}
+									{project.technologies && <p className={styles.project.technologies}>Technologies: {project.technologies}</p>}
+									{project.link && (
+										<a
+											href={project.link.startsWith('http') ? project.link : `https://${project.link}`}
+											target="_blank"
+											rel="noopener noreferrer"
+											className={styles.project.link}
+										>
+											{project.link}
+										</a>
+									)}
+								</div>
+							))}
+						</section>
+					)}
+
+					{/* Awards Section */}
+					{awards.length > 0 && (
+						<section className={styles.section.container}>
+							<h2 className={styles.section.title}>Awards</h2>
+							{awards.map((award, index) => (
+								<div key={index} className="mt-3">
+									<h3 className={styles.award.name}>{award.name}</h3>
+									{(award.issuer || award.date) && (
+										<p className={styles.award.details}>
+											{award.issuer && award.date ? `${award.issuer} | ${award.date}` : award.issuer || award.date}
+										</p>
+									)}
+								</div>
+							))}
+						</section>
+					)}
+
+					{/* Education Section */}
+					{education.length > 0 && (
+						<section className={styles.section.container}>
+							<h2 className={styles.section.title}>Education</h2>
+							{education.map((edu, index) => (
+								<div key={index} className="mt-3">
+									<div className="flex justify-between items-center">
+										<h3 className={styles.education.degree}>
+											{edu.degree}
+											{edu.fieldOfStudy ? ` - ${edu.fieldOfStudy}` : ''}
+										</h3>
+										<span className={styles.education.dateRange}>
+											{edu.startDate} - {edu.endDate || 'Present'}
+										</span>
+									</div>
+									<p className={styles.education.school}>{edu.school}</p>
+									{edu.gpa && <p className={styles.education.gpa}>GPA: {edu.gpa}</p>}
+								</div>
+							))}
+						</section>
+					)}
+				</div>
+			</div>
+		)
+	}
+
+	// Single-column layout rendering (existing implementation)
 	return (
 		<div className="bg-white p-12">
 			{/* Header Section */}
@@ -376,12 +600,22 @@ function MinimalistTemplate({ resumeData }: { resumeData: ResumeData }) {
 /** Creative Template Component */
 function CreativeTemplate({ resumeData }: { resumeData: ResumeData }) {
 	const creativeStyles: TemplateStyleConfig = {
+		layout: 'sidebar',
 		header: {
-			container: 'text-center border-b-2 border-primary pb-4',
-			name: 'text-4xl font-bold text-primary tracking-tight',
-			headline: 'text-lg text-primary font-medium mt-1',
+			container: 'text-center mb-6',
+			name: 'text-2xl font-bold text-white tracking-tight',
+			headline: 'text-sm text-white/90 font-medium mt-2',
 			contactRow: 'flex justify-center items-center gap-x-6 gap-y-1 text-sm text-text-subtle mt-3 flex-wrap',
 			linksRow: 'flex justify-center items-center gap-x-6 text-sm mt-2 flex-wrap'
+		},
+		sidebar: {
+			container: 'bg-primary text-white p-8',
+			sectionTitle: 'text-lg font-bold border-b-2 border-white/30 pb-2 mb-3',
+			contactItem: 'text-sm mb-2',
+			skillItem: 'text-sm mb-1'
+		},
+		mainContent: {
+			container: 'p-8 bg-white'
 		},
 		section: {
 			title: 'text-xl font-bold text-primary tracking-wide uppercase border-b-2 border-primary pb-1',

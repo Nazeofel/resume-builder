@@ -38,6 +38,16 @@ export async function POST(request: NextRequest) {
   // Handle different event types
   try {
     switch (event.type) {
+      /**
+       * Subscription Activation Handler
+       *
+       * This webhook event is triggered when a user successfully completes checkout.
+       * It activates the subscription by:
+       * - Setting subscriptionStatus to ACTIVE
+       * - Resetting usageCount to 0 for the new billing period
+       * - Setting usageLimit to unlimited for Pro tier
+       * - Recording the billing period start and end dates
+       */
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
 
@@ -52,44 +62,8 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Verify payment was successful
-        if (session.payment_status === 'paid') {
-          // Retrieve the full session with line items to get price details
-          const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-            expand: ['line_items', 'line_items.data.price'],
-          });
-
-          if (!fullSession.line_items?.data || fullSession.line_items.data.length === 0) {
-            console.error('No line items found in session:', session.id);
-            return NextResponse.json(
-              { error: 'No line items found' },
-              { status: 400 }
-            );
-          }
-
-          // Calculate total mana from all line items
-          let totalMana = 0;
-          for (const item of fullSession.line_items.data) {
-            const price = item.price as Stripe.Price;
-            const manaAmount = parseInt(price.metadata?.mana_amount || '0');
-            const quantity = item.quantity || 1;
-
-            if (manaAmount > 0) {
-              totalMana += manaAmount * quantity;
-            } else {
-              console.warn(`Price ${price.id} has no mana_amount metadata`);
-            }
-          }
-
-          if (totalMana === 0) {
-            console.error('No mana amount found in price metadata for session:', session.id);
-            return NextResponse.json(
-              { error: 'Invalid mana amount' },
-              { status: 400 }
-            );
-          }
-
-          // Update user's mana count
+        // Handle subscription checkout completion
+        if (session.mode === 'subscription' && session.subscription) {
           const user = await prisma.user.findUnique({
             where: { userId },
           });
@@ -102,29 +76,89 @@ export async function POST(request: NextRequest) {
             );
           }
 
-          // Add mana to user's account and create transaction record
-          await prisma.$transaction([
-            prisma.user.update({
-              where: { userId },
-              data: {
-                manaCount: (user.manaCount ?? 0) + totalMana,
-              },
-            }),
-            prisma.transaction.create({
-              data: {
-                userId,
-                amount: session.amount_total ?? null,
-                manaAmount: totalMana,
-                stripeSessionId: session.id,
-                status: 'completed',
-              },
-            }),
-          ]);
+          // Retrieve subscription to get billing period
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
 
-          console.log(`✅ Added ${totalMana} mana to user ${userId} (Session: ${session.id})`);
-        } else {
-          console.warn('Payment not completed for session:', session.id);
+          // Update user subscription status
+          await prisma.user.update({
+            where: { userId },
+            data: {
+              subscriptionStatus: 'ACTIVE',
+              usageCount: 0, // Reset usage on new subscription
+              usageLimit: 999999, // Set to unlimited or high limit for Pro tier
+              billingPeriodStart: new Date(subscription.current_period_start * 1000),
+              billingPeriodEnd: new Date(subscription.current_period_end * 1000),
+            },
+          });
+
+          console.log(`✅ Activated subscription for user ${userId} (Session: ${session.id})`);
         }
+        break;
+      }
+
+      /**
+       * Subscription Renewal Handler
+       *
+       * This webhook event is triggered when a subscription is renewed or updated.
+       * It handles subscription renewals by:
+       * - Resetting usageCount to 0 for the new billing period
+       * - Updating billing period start and end dates
+       * - Maintaining subscription status (ACTIVE or INACTIVE based on Stripe status)
+       */
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const userId = subscription.metadata?.userId;
+
+        if (!userId) {
+          console.error('Missing userId in subscription metadata:', subscription.id);
+          break;
+        }
+
+        // Update billing period on subscription renewal
+        await prisma.user.update({
+          where: { userId },
+          data: {
+            subscriptionStatus: subscription.status === 'active' ? 'ACTIVE' : 'INACTIVE',
+            usageCount: 0, // Reset usage on period renewal
+            billingPeriodStart: new Date(subscription.current_period_start * 1000),
+            billingPeriodEnd: new Date(subscription.current_period_end * 1000),
+          },
+        });
+
+        console.log(`✅ Updated subscription for user ${userId}`);
+        break;
+      }
+
+      /**
+       * Subscription Cancellation Handler
+       *
+       * This webhook event is triggered when a subscription is cancelled or deleted.
+       * It deactivates the subscription by:
+       * - Setting subscriptionStatus to INACTIVE
+       * - Reverting usageLimit to free tier limit (100 AI assists)
+       * - Resetting usageCount to 0 for the new free tier period
+       * - User retains access to free tier features
+       */
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const userId = subscription.metadata?.userId;
+
+        if (!userId) {
+          console.error('Missing userId in subscription metadata:', subscription.id);
+          break;
+        }
+
+        // Deactivate subscription
+        await prisma.user.update({
+          where: { userId },
+          data: {
+            subscriptionStatus: 'INACTIVE',
+            usageCount: 0, // Reset usage count for free tier
+            usageLimit: 100, // Revert to free tier limit
+          },
+        });
+
+        console.log(`❌ Cancelled subscription for user ${userId}`);
         break;
       }
 
@@ -139,46 +173,6 @@ export async function POST(request: NextRequest) {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.error('Payment failed:', paymentIntent.id);
         // Optional: Handle failed payments
-        break;
-      }
-
-      case 'charge.refunded': {
-        const charge = event.data.object as Stripe.Charge;
-
-        // Find the transaction by payment intent or session
-        const paymentIntentId = charge.payment_intent as string;
-
-        // You'll need to find the session from payment_intent
-        const sessions = await stripe.checkout.sessions.list({
-          payment_intent: paymentIntentId,
-          limit: 1,
-        });
-
-        if (sessions.data.length > 0) {
-          const session = sessions.data[0];
-          const transaction = await prisma.transaction.findUnique({
-            where: { stripeSessionId: session.id },
-            include: { user: true },
-          });
-
-          if (transaction && transaction.status === 'completed') {
-            // Deduct mana and mark transaction as refunded
-            await prisma.$transaction([
-              prisma.user.update({
-                where: { userId: transaction.userId },
-                data: {
-                  manaCount: Math.max(0, (transaction.user.manaCount ?? 0) - transaction.manaAmount),
-                },
-              }),
-              prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 'refunded' },
-              }),
-            ]);
-
-            console.log(`🔄 Refunded ${transaction.manaAmount} mana from user ${transaction.userId}`);
-          }
-        }
         break;
       }
 

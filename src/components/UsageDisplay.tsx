@@ -1,14 +1,14 @@
 import { cn } from '@/lib/utils'
 
-interface ManaDisplayProps {
-  mana?: number
-  maxMana?: number
+interface UsageDisplayProps {
+  usageCount?: number
+  usageLimit?: number
   onClick?: () => void
   className?: string
 }
 
-export function ManaDisplay({ mana, maxMana, onClick, className }: ManaDisplayProps) {
-  const percentage = mana && maxMana ? (mana / maxMana) * 100 : 0
+export function UsageDisplay({ usageCount, usageLimit, onClick, className }: UsageDisplayProps) {
+  const percentage = usageCount !== undefined && usageLimit ? (usageCount / usageLimit) * 100 : 0
 
   return (
     <button
@@ -17,7 +17,7 @@ export function ManaDisplay({ mana, maxMana, onClick, className }: ManaDisplayPr
         "flex items-center gap-2 hover:scale-105 transition-transform duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md p-2",
         className
       )}
-      aria-label={`Mana balance: ${mana ?? 0} out of ${maxMana ?? 0}`}
+      aria-label={`Usage: ${usageCount ?? 0} out of ${usageLimit ?? 0} AI assists used`}
       role="button"
       onClick={onClick}
     >
@@ -26,7 +26,7 @@ export function ManaDisplay({ mana, maxMana, onClick, className }: ManaDisplayPr
       </span>
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium text-foreground">
-          {mana ?? '--'}/{maxMana ?? '--'} Mana
+          {usageCount ?? 0}/{usageLimit ?? 0} AI Assists
         </span>
         <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
           <div

@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+  
+  @@index([email])
+  @@index([token])
+}
+
+model Education {
+  id          String   @id @default(cuid())
+  school      String
+  degree      String
+  fieldOfStudy String?
+  startDate   DateTime
+  endDate     DateTime?
+  gpa         String?
+  resume      Resume   @relation(fields: [resumeId], references: [id])
+  resumeId    String
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  link        String?
+  startDate   DateTime?
+  endDate     DateTime?
+  resume      Resume   @relation(fields: [resumeId], references: [id])
+  resumeId    String
+}
+
+model Resume {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  title       String   @db.VarChar(120)
+  summary     String?
+  contactInfo Json?
+  experiences Experience[]
+  skills      Skill[]
+  education    Education[]  
+  projects     Project[]      
+  owner       User?    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String?
+}
+
+model Experience {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  company     String
+  role        String
+  startDate   DateTime
+  endDate     DateTime?
+  description String?
+  resume      Resume   @relation(fields: [resumeId], references: [id])
+  resumeId    String
+}
+
+model Skill {
+  id        String  @id @default(cuid())
+  name      String
+  level     String?
+  resume    Resume  @relation(fields: [resumeId], references: [id])
+  resumeId  String
+}
+
+model User {
+  id        String   @id @default(cuid())
+  userId    String @unique
+  email     String   @unique
+  name      String
+  resumes   Resume[]
+  AIFeaturesActivated Boolean @default(false)
+  hash String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  manaCount      Int?
+  sessionToken String?
+
+  password Password?
+  transactions Transaction[]
+}
+
+
+model Password {
+	id        String   @id @default(cuid())
+	userId    String   @unique
+	email     String   @unique
+
+	user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+	@@index([email])
+}
+
+model Transaction {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  userId            String
+  amount            Int?     // Amount in cents (Stripe amount_total)
+  manaAmount        Int      // Amount of mana purchased
+  stripeSessionId   String   @unique
+  status            String   // 'completed', 'failed', 'refunded'
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeSessionId])
+}

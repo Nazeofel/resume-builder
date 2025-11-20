@@ -97,8 +97,4 @@ const config: AuthPluginOptions = {
 	secret: process.env.AUTH_SECRET
 }
 
-//emails: {
-//    from: 'sage@roboplay.dev',
-//    mailer: ResendMailer({ apiKey: env.get('resend.apiKey') })
-//  },
 export default config

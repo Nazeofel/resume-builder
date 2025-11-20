@@ -3,9 +3,8 @@
 import { useState, useRef, FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { FormInput } from '@/components/ui/form-input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import Link from 'next/link'
+// import { Label } from '@/components/ui/label'
+// import { Checkbox } from '@/components/ui/checkbox'
 import { signIn, getCsrfToken } from '@robojs/auth/client'
 import { useRouter } from 'next/navigation'
 import ForgotPasswordModal from './ForgotPasswordModal'
@@ -151,7 +150,7 @@ export default function LoginForm() {
 				/>
 
 				{/* Remember Me Checkbox */}
-				<div className="flex items-center space-x-2">
+				{/* <div className="flex items-center space-x-2">
 					<Checkbox
 						id="rememberMe"
 						name="rememberMe"
@@ -165,7 +164,7 @@ export default function LoginForm() {
 					<Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
 						Remember me for 30 days
 					</Label>
-				</div>
+				</div> */}
 
 				{/* Submit Button */}
 				<Button

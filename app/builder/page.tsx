@@ -16,6 +16,7 @@ import {
 	validateStep
 } from '@/stores/builder'
 import { BuilderFormField, BuilderTextarea, BuilderSelect, ExperienceCard, EducationCard, SkillTag, ProjectCard, CertificationTag, LanguageTag, TemplateSelector, ExportButtons, StepProgress, NavigationButtons, ResumePreview } from '@/components/builder'
+import { Combobox } from '@/components/ui/combobox'
 import Link from 'next/link'
 
 export default function BuilderPage() {
@@ -67,12 +68,13 @@ export default function BuilderPage() {
 	}
 
 	// Skills handlers
-	const handleAddSkill = () => {
-		if (!skillInput.trim()) return
+	const handleAddSkill = (skillName?: string) => {
+		const nameToAdd = skillName || skillInput
+		if (!nameToAdd.trim()) return
 
 		const newSkill: Skill = {
 			id: crypto.randomUUID(),
-			name: skillInput.trim()
+			name: nameToAdd.trim()
 		}
 		setResumeDataPartial({
 			skills: [...resumeData.skills, newSkill]
@@ -332,10 +334,40 @@ export default function BuilderPage() {
 							</div>
 						)}
 
-						{/* Step 1: Contact Info */}
+						{/* Step 1: Template Selection */}
 						{currentStep === 1 && (
 							<>
-								<StepProgress currentStep={1} totalSteps={6} stepLabel="Contact Info" />
+								<StepProgress currentStep={1} totalSteps={7} stepLabel="Choose Template" />
+								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
+									<div className="flex flex-col gap-3">
+										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Choose Template</h1>
+										<p className="text-text-subtle text-base font-normal leading-normal">
+											Select a template to get started with your resume.
+										</p>
+									</div>
+
+									<div className="flex flex-col gap-4">
+										<TemplateSelector
+											selectedTemplate={resumeData.selectedTemplate}
+											onSelect={handleTemplateSelect}
+										/>
+									</div>
+
+									<NavigationButtons
+										onPrevious={handlePrevious}
+										onNext={handleNext}
+										previousDisabled={true}
+										showPrevious={false}
+										showNext={true}
+									/>
+								</div>
+							</>
+						)}
+
+						{/* Step 2: Contact Info */}
+						{currentStep === 2 && (
+							<>
+								<StepProgress currentStep={2} totalSteps={7} stepLabel="Contact Info" />
 								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
 									<div className="flex flex-col gap-3">
 										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Contact Information</h1>
@@ -441,7 +473,7 @@ export default function BuilderPage() {
 									<NavigationButtons
 										onPrevious={handlePrevious}
 										onNext={handleNext}
-										previousDisabled={currentStep === 1}
+										previousDisabled={false}
 										showPrevious={true}
 										showNext={true}
 									/>
@@ -449,10 +481,10 @@ export default function BuilderPage() {
 							</>
 						)}
 
-						{/* Step 2: Experience & Skills */}
-						{currentStep === 2 && (
+						{/* Step 3: Experience & Skills */}
+						{currentStep === 3 && (
 							<>
-								<StepProgress currentStep={2} totalSteps={6} stepLabel="Experience" />
+								<StepProgress currentStep={3} totalSteps={7} stepLabel="Experience & Skills" />
 								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
 									{/* Work Experience Section */}
 									<div className="flex flex-col gap-6">
@@ -505,26 +537,22 @@ export default function BuilderPage() {
 
 										{/* Add Skill Input */}
 										<div className="flex items-end gap-4">
-											<div className="flex-1 relative">
-												<BuilderFormField
-													id="skillInput"
-													name="skillInput"
-													label="Add a skill"
-													type="text"
-													placeholder="e.g., UI/UX Design"
+											<div className="flex-1 relative flex flex-col gap-2">
+												<label className="text-base font-medium text-text-main">Add a skill</label>
+												<Combobox
 													value={skillInput}
-													onChange={(e) => setSkillInput(e.target.value)}
-													onKeyDown={(e) => {
-														if (e.key === 'Enter') {
-															e.preventDefault()
-															handleAddSkill()
-														}
+													onSelect={(value) => {
+														setSkillInput(value)
+														handleAddSkill(value)
 													}}
+													placeholder="e.g., UI/UX Design"
+													searchPlaceholder="Search skills..."
+													apiEndpoint="/api/roles"
 												/>
 											</div>
 											<button
-												onClick={handleAddSkill}
-												className="h-14 px-6 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
+												onClick={() => handleAddSkill()}
+												className="h-10 px-6 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
 											>
 												Add
 											</button>
@@ -543,10 +571,10 @@ export default function BuilderPage() {
 							</>
 						)}
 
-						{/* Step 3: Professional Summary */}
-						{currentStep === 3 && (
+						{/* Step 4: Professional Summary */}
+						{currentStep === 4 && (
 							<>
-								<StepProgress currentStep={3} totalSteps={6} stepLabel="Professional Summary" />
+								<StepProgress currentStep={4} totalSteps={7} stepLabel="Professional Summary" />
 								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
 									<div className="flex flex-col gap-3">
 										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Professional Summary</h1>
@@ -564,7 +592,7 @@ export default function BuilderPage() {
 											placeholder="Start with your most recent role and key achievements..."
 											rows={8}
 											showAIButton={true}
-											onAIClick={() => {}}
+											onAIClick={() => { }}
 										/>
 									</div>
 
@@ -580,10 +608,10 @@ export default function BuilderPage() {
 							</>
 						)}
 
-						{/* Step 4: Education */}
-						{currentStep === 4 && (
+						{/* Step 5: Education */}
+						{currentStep === 5 && (
 							<>
-								<StepProgress currentStep={4} totalSteps={6} stepLabel="Education" />
+								<StepProgress currentStep={5} totalSteps={7} stepLabel="Education" />
 								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
 									<div className="flex flex-col gap-3">
 										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Education</h1>
@@ -626,10 +654,10 @@ export default function BuilderPage() {
 							</>
 						)}
 
-						{/* Step 5: Projects & Extras */}
-						{currentStep === 5 && (
+						{/* Step 6: Projects & Extras */}
+						{currentStep === 6 && (
 							<>
-								<StepProgress currentStep={5} totalSteps={6} stepLabel="Projects & Extras" />
+								<StepProgress currentStep={6} totalSteps={7} stepLabel="Projects & Extras" />
 								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
 									<div className="flex flex-col gap-3">
 										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Projects & Extras</h1>
@@ -763,11 +791,11 @@ export default function BuilderPage() {
 							</>
 						)}
 
-						{/* Step 6: Review & Export */}
-						{currentStep === 6 && (
+						{/* Step 7: Review & Export */}
+						{currentStep === 7 && (
 							<>
 								<div className="flex items-center justify-between gap-4">
-									<StepProgress currentStep={6} totalSteps={6} stepLabel="Review & Export" />
+									<StepProgress currentStep={7} totalSteps={7} stepLabel="Review & Export" />
 									<span className="text-primary text-base font-bold flex items-center gap-2">
 										<span className="material-symbols-outlined">check_circle</span>
 										Complete!
@@ -777,17 +805,8 @@ export default function BuilderPage() {
 									<div className="flex flex-col gap-3">
 										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Review & Export</h1>
 										<p className="text-text-subtle text-base font-normal leading-normal">
-											Choose your template and export your resume in your preferred format.
+											Review your resume and export it in your preferred format.
 										</p>
-									</div>
-
-									{/* Template Selection Section */}
-									<div className="flex flex-col gap-4">
-										<h2 className="text-2xl font-bold text-text-main">Choose Template</h2>
-										<TemplateSelector
-											selectedTemplate={resumeData.selectedTemplate}
-											onSelect={handleTemplateSelect}
-										/>
 									</div>
 
 									{/* Export Format Section */}
@@ -798,44 +817,28 @@ export default function BuilderPage() {
 
 									{/* Pro Tip */}
 									<div className="bg-highlight/30 rounded-lg border border-border-color/30 p-4 flex gap-3">
-										<span className="material-symbols-outlined text-primary">info</span>
-										<div className="flex-1">
-											<p className="text-text-main font-medium">Pro Tip</p>
-											<p className="text-text-subtle text-sm">
-												Download multiple formats for different application systems. PDF for email, plain text for ATS.
-											</p>
-										</div>
+										<span className="material-symbols-rounded text-primary">lightbulb</span>
+										<p className="text-sm text-text-main">
+											<strong>Pro Tip:</strong> Tailor your resume for each job application by adjusting your summary and skills.
+										</p>
 									</div>
 
-									{/* Validation Errors */}
-									{validationErrors.length > 0 && (
-										<div className="bg-red-50 border border-red-200 rounded-lg p-4">
-											<h3 className="text-red-800 font-semibold mb-2">Please fix the following:</h3>
-											<ul className="list-disc list-inside text-red-700 text-sm space-y-1">
-												{validationErrors.map((error, index) => (
-													<li key={index}>{error}</li>
-												))}
-											</ul>
-										</div>
-									)}
-
-									{/* Navigation Buttons */}
 									<NavigationButtons
 										onPrevious={handlePrevious}
-										onNext={handleNext}
+										onNext={() => { }} // No next step
 										previousDisabled={false}
-										nextDisabled={!resumeData.selectedTemplate}
 										showPrevious={true}
-										showNext={true}
-										nextLabel="Finalize & Download"
+										showNext={false}
 									/>
 								</div>
 							</>
 						)}
 					</div>
 
-					{/* Right Column - Live Preview */}
-					<ResumePreview />
+					{/* Right Column - Preview */}
+					<div className="hidden lg:block sticky top-24 h-[calc(100vh-8rem)]">
+						<ResumePreview data={resumeData} />
+					</div>
 				</div>
 			</main>
 		</div>

@@ -9,10 +9,10 @@ import { getCsrfToken } from '@robojs/auth/client'
 
 export default function RegisterForm() {
 	const [formData, setFormData] = useState({
-		name: 'john',
-		email: `${crypto.randomUUID().replaceAll('-', '')}@gmail.com`,
-		password: '12345678',
-		confirmPassword: '12345678',
+		name: "",
+		email: "",
+		password: "",
+		confirmPassword: "",
 		agreeToTerms: true
 	})
 	const [errors, setErrors] = useState<{

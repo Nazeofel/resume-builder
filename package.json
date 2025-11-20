@@ -50,6 +50,7 @@
 		"next": "^15.5.4",
 		"react": "^19.1.1",
 		"react-dom": "^19.1.1",
+		"resend": "^6.5.2",
 		"robo.js": "https://pkg.pr.new/Wave-Play/robo.js@e862e28",
 		"stripe": "19.1.0",
 		"tailwind-merge": "^3.4.0",

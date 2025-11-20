@@ -112,9 +112,9 @@ export const setResumeDataAtom = atom(null, (get, set, update: Partial<ResumeDat
 
 export const currentStepAtom = atom((get) => get(resumeDataAtom).currentStep)
 
-/** Setter atom for currentStep. Clamps value to range [1, 6]. */
+/** Setter atom for currentStep. Clamps value to range [1, 7]. */
 export const setCurrentStepAtom = atom(null, (get, set, step: number) => {
-	const clampedStep = Math.max(1, Math.min(6, step))
+	const clampedStep = Math.max(1, Math.min(7, step))
 	set(resumeDataAtom, {
 		...get(resumeDataAtom),
 		currentStep: clampedStep
@@ -252,7 +252,7 @@ export function validateTemplate(selectedTemplate: string): ValidationResult {
 	if (!selectedTemplate || selectedTemplate.trim() === '') {
 		return {
 			isValid: false,
-			errors: ['Please select a template before exporting']
+			errors: ['Please select a template to proceed']
 		}
 	}
 	return {
@@ -265,9 +265,11 @@ export function validateTemplate(selectedTemplate: string): ValidationResult {
 export function validateStep(step: number, data: ResumeData): ValidationResult {
 	switch (step) {
 		case 1:
+			return validateTemplate(data.selectedTemplate)
+		case 2:
 			return validateContactInfo(data.contactInfo)
-		case 2: {
-			// Step 2 combines experience and skills validation
+		case 3: {
+			// Step 3 combines experience and skills validation
 			const expValidation = validateExperience(data.experiences)
 			const skillsValidation = validateSkills(data.skills)
 
@@ -278,14 +280,15 @@ export function validateStep(step: number, data: ResumeData): ValidationResult {
 				errors: combinedErrors
 			}
 		}
-		case 3:
-			return validateSummary(data.summary)
 		case 4:
-			return validateEducation(data.education)
+			return validateSummary(data.summary)
 		case 5:
-			return validateProjects(data.projects)
+			return validateEducation(data.education)
 		case 6:
-			return validateTemplate(data.selectedTemplate)
+			return validateProjects(data.projects)
+		case 7:
+			// Review step doesn't need validation, but we can check everything again if we want
+			return { isValid: true, errors: [] }
 		default:
 			return { isValid: true, errors: [] }
 	}

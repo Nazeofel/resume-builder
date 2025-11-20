@@ -1,7 +1,9 @@
 'use client';
 
 import { Experience } from '@/stores/builder';
-import { BuilderSelect, BuilderTextarea, AIAssistButton, SelectOption } from '@/components/builder';
+import { BuilderTextarea, BuilderFormField } from '@/components/builder';
+import { Combobox } from '@/components/ui/combobox';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface ExperienceCardProps {
   experience: Experience;
@@ -9,20 +11,6 @@ interface ExperienceCardProps {
   onDelete: () => void;
   index: number;
 }
-
-const JOB_TITLE_OPTIONS: SelectOption[] = [
-  { value: 'Lead Product Manager', label: 'Lead Product Manager' },
-  { value: 'Senior Product Manager', label: 'Senior Product Manager' },
-  { value: 'Product Manager', label: 'Product Manager' },
-  { value: 'Software Engineer', label: 'Software Engineer' },
-  { value: 'Senior Software Engineer', label: 'Senior Software Engineer' },
-  { value: 'UX/UI Designer', label: 'UX/UI Designer' },
-  { value: 'Data Scientist', label: 'Data Scientist' },
-  { value: 'Project Manager', label: 'Project Manager' },
-  { value: 'Marketing Manager', label: 'Marketing Manager' },
-  { value: 'Sales Manager', label: 'Sales Manager' },
-  { value: 'Other', label: 'Other' },
-];
 
 export function ExperienceCard({ experience, onUpdate, onDelete, index }: ExperienceCardProps) {
   return (
@@ -43,74 +31,51 @@ export function ExperienceCard({ experience, onUpdate, onDelete, index }: Experi
       <div className="flex flex-col gap-6">
         {/* Row 1: Job Title & Company */}
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="min-w-40 flex-1">
-            <BuilderSelect
-              label="Job Title"
+          <div className="min-w-40 flex-1 flex flex-col gap-2">
+            <label className="text-base font-medium text-text-main">Job Title</label>
+            <Combobox
               value={experience.jobTitle}
-              onValueChange={(value) => onUpdate('jobTitle', value)}
-              options={JOB_TITLE_OPTIONS}
+              onSelect={(value) => onUpdate('jobTitle', value)}
               placeholder="Select job title"
+              searchPlaceholder="Search roles..."
+              apiEndpoint="/api/roles"
             />
           </div>
-          <div className="min-w-40 flex-1 relative">
-            <label className="block text-sm font-medium text-text-main mb-2">
-              Company
-            </label>
-            <input
-              type="text"
+          <div className="min-w-40 flex-1">
+            <BuilderFormField
+              id={`company-${experience.id}`}
+              label="Company"
               value={experience.company}
               onChange={(e) => onUpdate('company', e.target.value)}
               placeholder="e.g., Google"
-              className="w-full form-input"
-            />
-            <AIAssistButton
-              onClick={() => {}}
-              className="absolute top-2 right-2"
             />
           </div>
         </div>
 
         {/* Row 2: Location & Dates */}
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="min-w-40 flex-1 relative">
-            <label className="block text-sm font-medium text-text-main mb-2">
-              Location
-            </label>
-            <input
-              type="text"
+          <div className="min-w-40 flex-1">
+            <BuilderFormField
+              id={`location-${experience.id}`}
+              label="Location"
               value={experience.location}
               onChange={(e) => onUpdate('location', e.target.value)}
               placeholder="e.g., San Francisco, CA"
-              className="w-full form-input"
-            />
-            <AIAssistButton
-              onClick={() => {}}
-              className="absolute top-2 right-2"
             />
           </div>
-          <div className="min-w-40 flex-1 flex gap-4">
+          <div className="min-w-40 flex-1 flex gap-4 flex-col">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-text-main mb-2">
-                Start Date
-              </label>
-              <input
-                type="text"
+              <DatePicker
+                label="Start Date"
                 value={experience.startDate}
                 onChange={(e) => onUpdate('startDate', e.target.value)}
-                placeholder="MM/YYYY"
-                className="w-full form-input"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-text-main mb-2">
-                End Date
-              </label>
-              <input
-                type="text"
+              <DatePicker
+                label="End Date"
                 value={experience.endDate}
                 onChange={(e) => onUpdate('endDate', e.target.value)}
-                placeholder="MM/YYYY or Present"
-                className="w-full form-input"
               />
             </div>
           </div>
@@ -126,7 +91,7 @@ export function ExperienceCard({ experience, onUpdate, onDelete, index }: Experi
             placeholder="Describe your responsibilities and achievements..."
             rows={4}
             showAIButton={true}
-            onAIClick={() => {}}
+            onAIClick={() => { }}
           />
         </div>
       </div>

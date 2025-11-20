@@ -75,6 +75,7 @@ export default function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswo
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="rounded-xl shadow-2xl max-w-lg bg-cream" aria-describedby="forgot-password-modal">
+				<DialogTitle className='text-sm'>Forgot password</DialogTitle>
 				<div className="px-6 pb-10 sm:px-10 md:px-12">
 					{success ? (
 						// Success state
@@ -106,8 +107,7 @@ export default function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswo
 										icon="mail"
 										aria-label="Email address"
 										aria-invalid={!!error}
-										aria-describedby={error ? 'email-error' : undefined}
-									/>
+										aria-describedby={error ? 'email-error' : undefined} id={''} label={''} />
 									{error && (
 										<p id="email-error" role="alert" className="text-sm text-red-500 mt-2">
 											{error}

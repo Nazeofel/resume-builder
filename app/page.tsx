@@ -4,8 +4,12 @@ import { motion } from 'motion/react'
 import Navbar from '@/components/Navbar'
 import Hero from '@/components/Hero'
 import Footer from '@/components/Footer'
+import { useAtom } from 'jotai'
+import { userAtom } from '@/stores/user'
 export default function HomePage() {
-	// This would come from your auth system
+	const [user] = useAtom(userAtom)
+
+	const isAuthenticated = !!user;
 
 	const cardVariants = {
 		hidden: { opacity: 0, y: 20 },

@@ -1,0 +1,40 @@
+import { NextResponse } from 'next/server'
+import { getServerUser } from '@/lib/auth-helper'
+import { prisma } from '@/lib/prisma'
+
+export async function GET() {
+    try {
+        const userSession = await getServerUser()
+
+        if (!userSession?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { userId: userSession.id },
+            include: {
+                resumes: {
+                    include: {
+                        experiences: true,
+                        skills: true,
+                        education: true,
+                        projects: true
+                    }
+                },
+                archivedTransactions: true
+            }
+        })
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 })
+        }
+
+        // Remove sensitive data
+        const { hash, ...safeUser } = user
+
+        return NextResponse.json(safeUser)
+    } catch (error) {
+        console.error('Data export error:', error)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+}

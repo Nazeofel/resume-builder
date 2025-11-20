@@ -1,12 +1,17 @@
-# LOGIN System
+# Security
 
-When clicking the forget password button above the login form open a modal asking for an e-mail, if e-mail is valid send a reset link via e-mail.
+Prevent non auth users from accessing important parts of the website, builder / dashboard
+Ideally, if they are logged in, they cannot access /auth
+
+and make the success and cancel page not accessible if you just navigate to them you know...
 
 # Account section
 
-(Dashboard) Make button available for users to retrieve their DATA (GDPR compliant)
-(Dashboard) Make a delete button to delete account
-(Dashboard) Form to change password / email at will
+Make a new acccount section in the dashboard with the following:
+
+- Make button available for users to retrieve their DATA (GDPR compliant)
+- Make a delete button to delete account
+- Form to change password / email at will
 
 # Subscription System - Implemented
 

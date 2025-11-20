@@ -74,8 +74,6 @@ export default function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswo
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogTitle className="DialogTitle">Edit profile</DialogTitle>
-
 			<DialogContent className="rounded-xl shadow-2xl max-w-lg bg-cream" aria-describedby="forgot-password-modal">
 				<div className="px-6 pb-10 sm:px-10 md:px-12">
 					{success ? (

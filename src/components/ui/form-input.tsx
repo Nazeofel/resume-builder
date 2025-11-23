@@ -16,10 +16,11 @@ interface FormInputProps {
 	rightLabel?: ReactNode
 	className?: string
 	name?: string
+	required?: boolean
 }
 
 export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
-	({ id, label, type = 'text', placeholder, value, onChange, error, icon, rightLabel, className, name }, ref) => {
+	({ id, label, type = 'text', placeholder, value, onChange, error, icon, rightLabel, className, name, required }, ref) => {
 		const [showPassword, setShowPassword] = useState(false)
 		const inputType = type === 'password' ? (showPassword ? 'text' : 'password') : type
 
@@ -48,9 +49,9 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
 						placeholder={placeholder}
 						value={value}
 						onChange={onChange}
-						className={`h-14 ${icon ? 'pl-11' : 'pl-4'} ${type === 'password' ? 'pr-11' : 'pr-4'} border-secondary-accent bg-beige focus:ring-2 focus:ring-primary/50 ${
-							error ? 'border-destructive' : ''
-						} ${className || ''}`}
+						required={required}
+						className={`h-14 ${icon ? 'pl-11' : 'pl-4'} ${type === 'password' ? 'pr-11' : 'pr-4'} border-secondary-accent bg-beige focus:ring-2 focus:ring-primary/50 ${error ? 'border-destructive' : ''
+							} ${className || ''}`}
 						aria-invalid={error ? 'true' : 'false'}
 						aria-describedby={error ? `${id}-error` : undefined}
 					/>

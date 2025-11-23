@@ -7,6 +7,67 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Custom fields
+  resumes            Resume[]
+  subscriptionStatus SubscriptionStatus @default(INACTIVE)
+  usageCount         Int                @default(0)
+  usageLimit         Int                @default(100)
+  billingPeriodStart DateTime?
+  billingPeriodEnd   DateTime?
+  password           Password?
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
 model PasswordResetToken {
   id        String   @id @default(cuid())
   email     String
@@ -84,46 +145,15 @@ enum SubscriptionStatus {
   TRIAL
 }
 
-model User {
-  id                 String             @id @default(cuid())
-  userId             String             @unique
-  email              String             @unique
-  name               String
-  resumes            Resume[]
-  subscriptionStatus SubscriptionStatus @default(INACTIVE)
-  usageCount         Int                @default(0)
-  usageLimit         Int                @default(100)
-  billingPeriodStart DateTime?
-  billingPeriodEnd   DateTime?
-  hash               String
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-
-  password             Password?
-  archivedTransactions ArchivedTransaction[]
-}
-
 model Password {
-  id     String @id @default(cuid())
-  userId String @unique
-  email  String @unique
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  email     String   @unique
+  hash      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([email])
-}
-
-model ArchivedTransaction {
-  id              String   @id @default(cuid())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  userId          String
-  amount          Int? // Amount in cents (Stripe amount_total)
-  stripeSessionId String   @unique
-  status          String // 'completed', 'failed', 'refunded'
-
-  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([stripeSessionId])
 }

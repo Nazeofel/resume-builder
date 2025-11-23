@@ -1,5 +1,6 @@
 import { NextServerEngine } from '@/core/server'
 
 export default {
-	engine: new NextServerEngine()
+	engine: new NextServerEngine(),
+	cors: true
 }

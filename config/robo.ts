@@ -1,6 +1,10 @@
 import type { Config } from 'robo.js'
 
 export default <Config>{
+	logger: {
+		level: 'debug',
+
+	},
 	experimental: {
 		disableBot: true
 	},

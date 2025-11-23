@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef, FormEvent } from 'react'
+import { useState, useRef, FormEvent, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { FormInput } from '@/components/ui/form-input'
 // import { Label } from '@/components/ui/label'
 // import { Checkbox } from '@/components/ui/checkbox'
 import { signIn, getCsrfToken } from '@robojs/auth/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import ForgotPasswordModal from './ForgotPasswordModal'
 
 export default function LoginForm() {
@@ -19,8 +19,15 @@ export default function LoginForm() {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false)
 	const router = useRouter()
+	const searchParams = useSearchParams()
 	const emailRef = useRef<HTMLInputElement>(null)
 	const passwordRef = useRef<HTMLInputElement>(null)
+
+	useEffect(() => {
+		if (searchParams.get('error') === 'CredentialsSignin') {
+			setErrors({ email: 'Invalid email or password' })
+		}
+	}, [searchParams])
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value, type, checked } = e.target
@@ -82,10 +89,10 @@ export default function LoginForm() {
 			// Check for error in URL if present
 			if (result?.url) {
 				try {
-					const url = new URL(result.url)
-					const error = url.search.includes('error')
+					const url = new URL(result.url, window.location.origin)
+					const error = url.searchParams.get('error')
 
-					if (error) {
+					if (error === 'CredentialsSignin') {
 						setErrors({ email: 'Invalid email or password' })
 						emailRef.current?.focus()
 						setIsSubmitting(false)

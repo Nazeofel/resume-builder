@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import LoginForm from '@/components/auth/LoginForm'
 import RegisterForm from '@/components/auth/RegisterForm'
@@ -12,7 +12,9 @@ export default function AuthPage() {
 	// get URL and parse params
 	const params = useSearchParams()
 
-	const [authMode, setAuthMode] = useState<'login' | 'register'>(params.get('login') === 'true' ? 'login' : 'register')
+	const [authMode, setAuthMode] = useState<'login' | 'register'>(
+		params.get('login') === 'true' || params.has('error') || params.has('callbackUrl') ? 'login' : 'register'
+	)
 
 	return (
 		<div className="bg-cream relative">
@@ -61,11 +63,10 @@ export default function AuthPage() {
 									>
 										<label
 											htmlFor="login-toggle"
-											className={`flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2 transition-colors ${
-												authMode === 'login'
-													? 'bg-white text-slate-800 shadow-[0_0_4px_rgba(0,0,0,0.1)]'
-													: 'text-slate-600'
-											}`}
+											className={`flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2 transition-colors ${authMode === 'login'
+												? 'bg-white text-slate-800 shadow-[0_0_4px_rgba(0,0,0,0.1)]'
+												: 'text-slate-600'
+												}`}
 											aria-checked={authMode === 'login'}
 										>
 											<span className="text-sm font-bold leading-normal">Login</span>
@@ -81,11 +82,10 @@ export default function AuthPage() {
 										</label>
 										<label
 											htmlFor="register-toggle"
-											className={`flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2 transition-colors ${
-												authMode === 'register'
-													? 'bg-white text-slate-800 shadow-[0_0_4px_rgba(0,0,0,0.1)]'
-													: 'text-slate-600'
-											}`}
+											className={`flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-lg px-2 transition-colors ${authMode === 'register'
+												? 'bg-white text-slate-800 shadow-[0_0_4px_rgba(0,0,0,0.1)]'
+												: 'text-slate-600'
+												}`}
 											aria-checked={authMode === 'register'}
 										>
 											<span className="text-sm font-bold leading-normal">Register</span>

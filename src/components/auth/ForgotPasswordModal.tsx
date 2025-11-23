@@ -52,7 +52,7 @@ export default function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswo
 		setIsSubmitting(true)
 
 		try {
-			const response = await fetch('/api/auth/forgot-password', {
+			const response = await fetch('/api/auth/password-reset-request', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

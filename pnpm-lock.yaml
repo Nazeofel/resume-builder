@@ -46,7 +46,7 @@ importers:
         version: 4.3.1(react@19.2.0)
       '@robojs/auth':
         specifier: https://pkg.pr.new/Wave-Play/robo.js/@robojs/auth@3ec5b2a
-        version: https://pkg.pr.new/Wave-Play/robo.js/@robojs/auth@3ec5b2a(@auth/prisma-adapter@2.11.1(@prisma/client@7.0.0(prisma@7.0.0(@types/react@19.2.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3)))(@prisma/client@7.0.0(prisma@7.0.0(@types/react@19.2.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@robojs/server@https://pkg.pr.new/Wave-Play/robo.js/@robojs/server@3ec5b2a)(robo.js@https://pkg.pr.new/Wave-Play/robo.js@3ec5b2a(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3))
+        version: https://pkg.pr.new/Wave-Play/robo.js/@robojs/auth@3ec5b2a(@auth/prisma-adapter@2.11.1(@prisma/client@7.0.0(prisma@7.0.0(@types/react@19.2.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3)))(@prisma/client@7.0.0(prisma@7.0.0(@types/react@19.2.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@robojs/server@https://pkg.pr.new/Wave-Play/robo.js/@robojs/server@3ec5b2a)(robo.js@https://pkg.pr.new/Wave-Play/robo.js@ef0c000(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3))
       '@robojs/server':
         specifier: https://pkg.pr.new/Wave-Play/robo.js/@robojs/server@3ec5b2a
         version: https://pkg.pr.new/Wave-Play/robo.js/@robojs/server@3ec5b2a
@@ -87,8 +87,8 @@ importers:
         specifier: ^6.5.2
         version: 6.5.2
       robo.js:
-        specifier: https://pkg.pr.new/Wave-Play/robo.js@3ec5b2a
-        version: https://pkg.pr.new/Wave-Play/robo.js@3ec5b2a(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3)
+        specifier: https://pkg.pr.new/Wave-Play/robo.js@ef0c000
+        version: https://pkg.pr.new/Wave-Play/robo.js@ef0c000(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3)
       stripe:
         specifier: 19.1.0
         version: 19.1.0(@types/node@24.10.1)
@@ -2320,8 +2320,8 @@ packages:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
 
-  robo.js@https://pkg.pr.new/Wave-Play/robo.js@3ec5b2a:
-    resolution: {tarball: https://pkg.pr.new/Wave-Play/robo.js@3ec5b2a}
+  robo.js@https://pkg.pr.new/Wave-Play/robo.js@ef0c000:
+    resolution: {tarball: https://pkg.pr.new/Wave-Play/robo.js@ef0c000}
     version: 0.10.31
     engines: {node: '>=18.0.0'}
     hasBin: true
@@ -3498,13 +3498,13 @@ snapshots:
       '@react-pdf/primitives': 4.1.1
       '@react-pdf/stylesheet': 6.1.1
 
-  '@robojs/auth@https://pkg.pr.new/Wave-Play/robo.js/@robojs/auth@3ec5b2a(@auth/prisma-adapter@2.11.1(@prisma/client@7.0.0(prisma@7.0.0(@types/react@19.2.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3)))(@prisma/client@7.0.0(prisma@7.0.0(@types/react@19.2.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@robojs/server@https://pkg.pr.new/Wave-Play/robo.js/@robojs/server@3ec5b2a)(robo.js@https://pkg.pr.new/Wave-Play/robo.js@3ec5b2a(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3))':
+  '@robojs/auth@https://pkg.pr.new/Wave-Play/robo.js/@robojs/auth@3ec5b2a(@auth/prisma-adapter@2.11.1(@prisma/client@7.0.0(prisma@7.0.0(@types/react@19.2.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3)))(@prisma/client@7.0.0(prisma@7.0.0(@types/react@19.2.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@robojs/server@https://pkg.pr.new/Wave-Play/robo.js/@robojs/server@3ec5b2a)(robo.js@https://pkg.pr.new/Wave-Play/robo.js@ef0c000(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3))':
     dependencies:
       '@auth/core': 0.40.0
       '@robojs/server': https://pkg.pr.new/Wave-Play/robo.js/@robojs/server@3ec5b2a
       argon2id: 1.0.1
       nanoid: 5.1.6
-      robo.js: https://pkg.pr.new/Wave-Play/robo.js@3ec5b2a(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3)
+      robo.js: https://pkg.pr.new/Wave-Play/robo.js@ef0c000(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3)
       zod: 3.25.76
     optionalDependencies:
       '@auth/prisma-adapter': 2.11.1(@prisma/client@7.0.0(prisma@7.0.0(@types/react@19.2.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))
@@ -4668,7 +4668,7 @@ snapshots:
 
   reusify@1.1.0: {}
 
-  robo.js@https://pkg.pr.new/Wave-Play/robo.js@3ec5b2a(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3):
+  robo.js@https://pkg.pr.new/Wave-Play/robo.js@ef0c000(@swc/core@1.15.1)(discord.js@14.24.2)(keyv@4.5.4)(typescript@5.9.3):
     dependencies:
       discord.js: 14.24.2
     optionalDependencies:

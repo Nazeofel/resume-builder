@@ -18,6 +18,7 @@ import {
 import { BuilderFormField, BuilderTextarea, BuilderSelect, ExperienceCard, EducationCard, SkillTag, ProjectCard, CertificationTag, LanguageTag, TemplateSelector, ExportButtons, StepProgress, NavigationButtons, ResumePreview } from '@/components/builder'
 import { Combobox } from '@/components/ui/combobox'
 import Link from 'next/link'
+import { skills } from '@/lib/arrays'
 
 export default function BuilderPage() {
 	const [resumeData] = useAtom(resumeDataAtom)
@@ -241,12 +242,30 @@ export default function BuilderPage() {
 		}
 	}
 
-	const handleDownload = (format: 'pdf' | 'word' | 'text' = 'pdf') => {
-		// TODO: Integrate PDF export library (e.g., jsPDF, react-pdf) in future phases
-		console.log(`[Resume Download] Format: ${format}, Current resume data:`, resumeData)
+	const handleDownload = async (format: 'pdf' | 'word' | 'text' = 'pdf') => {
+		if (format === 'pdf') {
+			try {
+				// Dynamically import to avoid SSR issues with @react-pdf/renderer
+				const { pdf } = await import('@react-pdf/renderer');
+				const { ResumePDF } = await import('@/components/pdf/ResumePDF');
 
-		// Placeholder alert for MVP
-		window.alert(`Download as ${format.toUpperCase()} functionality coming soon! Your resume data is saved locally.`)
+				const blob = await pdf(<ResumePDF data={resumeData} />).toBlob();
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `resume-${resumeData.contactInfo.fullName.replace(/\s+/g, '-').toLowerCase() || 'draft'}.pdf`;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				URL.revokeObjectURL(url);
+			} catch (error) {
+				console.error('Error generating PDF:', error);
+				window.alert('Failed to generate PDF. Please try again.');
+			}
+		} else {
+			console.log(`[Resume Download] Format: ${format}, Current resume data:`, resumeData)
+			window.alert(`Download as ${format.toUpperCase()} functionality coming soon! Your resume data is saved locally.`)
+		}
 	}
 
 	return (
@@ -281,7 +300,7 @@ export default function BuilderPage() {
 							<span className="truncate">Save</span>
 						</button>
 						<button
-							onClick={handleDownload}
+							onClick={() => handleDownload('pdf')}
 							className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors"
 						>
 							<span className="truncate">Download</span>
@@ -547,7 +566,7 @@ export default function BuilderPage() {
 													}}
 													placeholder="e.g., UI/UX Design"
 													searchPlaceholder="Search skills..."
-													apiEndpoint="/api/roles"
+													staticOptions={skills}
 												/>
 											</div>
 											<button
@@ -837,7 +856,7 @@ export default function BuilderPage() {
 
 					{/* Right Column - Preview */}
 					<div className="hidden lg:block sticky top-24 h-[calc(100vh-8rem)]">
-						<ResumePreview data={resumeData} />
+						<ResumePreview />
 					</div>
 				</div>
 			</main>

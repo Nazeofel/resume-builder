@@ -11,8 +11,8 @@ import ForgotPasswordModal from './ForgotPasswordModal'
 
 export default function LoginForm() {
 	const [formData, setFormData] = useState({
-		email: '',
-		password: '',
+		email: 'x@x.com',
+		password: '12345678',
 		rememberMe: false
 	})
 	const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
@@ -75,16 +75,26 @@ export default function LoginForm() {
 				password: formData.password,
 				csrfToken,
 				redirect: false
-			})) as { ok?: boolean; error?: string } | undefined
+			}))
 
 			console.log('Sign in result:', result)
 
-			if (result?.error) {
-				// Handle login error
-				setErrors({ email: 'Invalid email or password' })
-				emailRef.current?.focus()
-				setIsSubmitting(false)
-				return
+			// Check for error in URL if present
+			if (result?.url) {
+				try {
+					const url = new URL(result.url)
+					const error = url.search.includes('error')
+
+					if (error) {
+						setErrors({ email: 'Invalid email or password' })
+						emailRef.current?.focus()
+						setIsSubmitting(false)
+						return
+					}
+				} catch (e) {
+					// Ignore invalid URLs
+					console.error('Error parsing redirect URL:', e)
+				}
 			}
 
 			if (result?.ok) {

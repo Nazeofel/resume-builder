@@ -1,9 +1,12 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { TrieManager } from '@/lib/trie';
+import { jobs_title } from '@/lib/arrays';
+import { useDebounce } from '@/hooks/use-debounce';
 
 export interface ComboboxProps {
     value?: string;
@@ -11,7 +14,6 @@ export interface ComboboxProps {
     placeholder?: string;
     searchPlaceholder?: string;
     emptyText?: string;
-    apiEndpoint?: string;
     staticOptions?: string[];
 }
 
@@ -21,17 +23,30 @@ export function Combobox({
     placeholder = 'Select option...',
     searchPlaceholder = 'Search...',
     emptyText = 'No results found.',
-    apiEndpoint,
-    staticOptions = [],
+    staticOptions,
 }: ComboboxProps) {
-    const [open, setOpen] = React.useState(false);
-    const [inputValue, setInputValue] = React.useState('');
-    const [options, setOptions] = React.useState<string[]>(staticOptions);
-    const [loading, setLoading] = React.useState(false);
-    const wrapperRef = React.useRef<HTMLDivElement>(null);
+    const [open, setOpen] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const [loading, setLoading] = useState(false);
+    const debouncedSearch = useDebounce(inputValue, 200);
+
+    const [displayOptions, setDisplayOptions] = useState<string[]>([]);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    // Use useMemo to create the Trie.
+    // We assume staticOptions is relatively stable. If it changes, we rebuild the Trie.
+    const trie = useMemo(() => {
+        const manager = new TrieManager();
+        if (staticOptions) {
+            staticOptions.forEach((option) => {
+                manager.insert(option.toLowerCase());
+            });
+        }
+        return manager;
+    }, [staticOptions]);
 
     // Handle outside click to close
-    React.useEffect(() => {
+    useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
                 setOpen(false);
@@ -41,40 +56,20 @@ export function Combobox({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Debounce search for API
-    // React.useEffect(() => {
+    // Update loading state when input changes (before debounce)
+    useEffect(() => {
+        if (inputValue !== debouncedSearch) {
+            setLoading(true);
+        }
+    }, [inputValue, debouncedSearch]);
 
-    //     if (inputValue === ' ') {
-    //         return;
-    //     }
+    // Perform search when debounced value or trie changes
+    useEffect(() => {
+        const results = trie.suggest(debouncedSearch.toLowerCase());
+        setDisplayOptions(results);
+        setLoading(false);
+    }, [debouncedSearch, trie]);
 
-    //     if (!apiEndpoint || !inputValue) {
-    //         if (!apiEndpoint) setOptions(staticOptions);
-    //         return;
-    //     }
-
-    //     const timer = setTimeout(async () => {
-    //         setLoading(true);
-    //         try {
-    //             const res = await fetch(`${apiEndpoint}?query=${encodeURIComponent(inputValue)}`);
-    //             if (res.ok) {
-    //                 const data = await res.json();
-    //                 setOptions(data);
-    //             }
-    //         } catch (error) {
-    //             console.error('Failed to fetch options:', error);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     }, 300);
-
-    //     return () => clearTimeout(timer);
-    // }, [inputValue, apiEndpoint, staticOptions]);
-
-    // Filter static options if not using API
-    const displayOptions = apiEndpoint
-        ? options
-        : options.filter(opt => opt.toLowerCase().includes(inputValue.toLowerCase()));
 
     return (
         <div className="relative w-full" ref={wrapperRef}>

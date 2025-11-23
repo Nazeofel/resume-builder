@@ -1,7 +1,11 @@
 {
 	"compilerOptions": {
 		"target": "ESNext",
-		"lib": ["esnext", "DOM", "DOM.Iterable"],
+		"lib": [
+			"esnext",
+			"DOM",
+			"DOM.Iterable"
+		],
 		"allowJs": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
@@ -15,8 +19,15 @@
 		"isolatedModules": true,
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["src/*"],
-			"~/*": ["../robokit/src/*"]
+			"@prisma-generated/*": [
+				".robo/prisma/*"
+			],
+			"@/*": [
+				"src/*"
+			],
+			"~/*": [
+				"../robokit/src/*"
+			]
 		},
 		"noEmit": true,
 		"jsx": "preserve",
@@ -30,6 +41,12 @@
 			}
 		]
 	},
-	"include": ["**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-	"exclude": ["node_modules"]
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+		".next/types/**/*.ts"
+	],
+	"exclude": [
+		"node_modules"
+	]
 }

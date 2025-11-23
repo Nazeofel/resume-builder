@@ -4,6 +4,7 @@ import { Experience } from '@/stores/builder';
 import { BuilderTextarea, BuilderFormField } from '@/components/builder';
 import { Combobox } from '@/components/ui/combobox';
 import { DatePicker } from '@/components/ui/date-picker';
+import { jobs_title } from '@/lib/arrays';
 
 interface ExperienceCardProps {
   experience: Experience;
@@ -38,7 +39,7 @@ export function ExperienceCard({ experience, onUpdate, onDelete, index }: Experi
               onSelect={(value) => onUpdate('jobTitle', value)}
               placeholder="Select job title"
               searchPlaceholder="Search roles..."
-              apiEndpoint="/api/roles"
+              staticOptions={jobs_title}
             />
           </div>
           <div className="min-w-40 flex-1">

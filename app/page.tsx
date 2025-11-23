@@ -9,7 +9,7 @@ import { userAtom } from '@/stores/user'
 export default function HomePage() {
 	const [user] = useAtom(userAtom)
 
-	const isAuthenticated = !!user;
+	const isAuthenticated = user;
 
 	const cardVariants = {
 		hidden: { opacity: 0, y: 20 },

@@ -1,11 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../.robo/prisma"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 model PasswordResetToken {
@@ -86,19 +85,19 @@ enum SubscriptionStatus {
 }
 
 model User {
-  id                  String             @id @default(cuid())
-  userId              String             @unique
-  email               String             @unique
-  name                String
-  resumes             Resume[]
-  subscriptionStatus  SubscriptionStatus @default(INACTIVE)
-  usageCount          Int                @default(0)
-  usageLimit          Int                @default(100)
-  billingPeriodStart  DateTime?
-  billingPeriodEnd    DateTime?
-  hash                String
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  email              String             @unique
+  name               String
+  resumes            Resume[]
+  subscriptionStatus SubscriptionStatus @default(INACTIVE)
+  usageCount         Int                @default(0)
+  usageLimit         Int                @default(100)
+  billingPeriodStart DateTime?
+  billingPeriodEnd   DateTime?
+  hash               String
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   password             Password?
   archivedTransactions ArchivedTransaction[]

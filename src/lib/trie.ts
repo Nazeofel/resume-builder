@@ -7,7 +7,7 @@ class TrieNode {
 }
 
 
-class TrieManager {
+export class TrieManager {
     root: TrieNode;
     suggestions: string[] = [];
     sug_pref = '';
@@ -85,24 +85,3 @@ class TrieManager {
         return this.suggestions;
     }
 }
-
-
-
-
-let words = ["cat", "car", "cart", "dog"]
-
-let tri = new TrieManager();
-
-words.forEach((word) => {
-    tri.insert(word);
-})
-
-
-
-
-console.log(tri.suggest("ca"));
-console.log(tri.suggest("z"));
-console.log(tri.suggest("car"));
-console.log(tri.suggest("do"));
-
-

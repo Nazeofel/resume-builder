@@ -2,21 +2,21 @@ import EmailPassword from '@robojs/auth/providers/email-password'
 import ResendMailer from '@robojs/auth/emails/resend'
 import { createPrismaAdapter } from '@robojs/auth'
 import type { AuthPluginOptions } from '@robojs/auth'
-import { PrismaClient } from '@prisma/client'
 import { nanoid } from 'nanoid'
 import { hash } from '@node-rs/argon2'
+import { prisma } from '@/lib/prisma'
 
-const prisma = new PrismaClient()
 
-const adapter = createPrismaAdapter({
-	client: prisma,
-	secret: process.env.AUTH_SECRET!
-})
+const adapter = createPrismaAdapter({ client: prisma, secret: process.env.AUTH_SECRET! })
+
 
 const config: AuthPluginOptions = {
 	emails: {
 		from: 'robo-resume@resume.dev',
 		mailer: ResendMailer({ apiKey: process.env.RESEND_API_KEY! })
+	},
+	pages: {
+		signIn: '/auth?login=true',
 	},
 	adapter: adapter,
 	appName: 'RoboResume',
@@ -93,7 +93,24 @@ const config: AuthPluginOptions = {
 				}
 			}
 		})
+
+		// EmailPassword({ adapter })
+
 	],
+	session: {
+		strategy: "database"
+	},
+	cookies: {
+		sessionToken: {
+			name: 'authjs.session-token',
+			options: {
+				httpOnly: false,
+				sameSite: 'lax',
+				path: "/",
+				secure: false
+			}
+		}
+	},
 	secret: process.env.AUTH_SECRET
 }
 

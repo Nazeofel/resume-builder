@@ -34,8 +34,8 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 	const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false)
 
-	const userInitials = 'non'
-	const firstName = 'None'
+	const userInitials = user.name.split(' ').map((word) => word[0].toUpperCase()).join('')
+	const firstName = user.name.split(' ')[0]
 
 	const SidebarContent = () => (
 		<>

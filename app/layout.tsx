@@ -5,6 +5,7 @@ import { getSession } from '@robojs/auth/client'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { JotaiProvider } from '@/components/JotaiProvider'
+import { getUserData } from '@/lib/auth-helper'
 
 const spaceGrotesk = Space_Grotesk({
 	weight: ['400', '500', '700'],
@@ -19,55 +20,7 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-	// Get cookies from Next.js
-	const cookieStore = await cookies()
-	const cookieHeader = cookieStore.toString()
-
-	// Get session using cookies
-	const session = await getSession({
-		baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-		headers: {
-			cookie: cookieHeader
-		}
-	})
-
-	const isAuthenticated = !!session?.user?.id
-
-	let userData = null
-	if (isAuthenticated && session?.user?.id) {
-		try {
-			userData = await prisma.user.findUnique({
-				where: { userId: session.user.id },
-				select: {
-					id: true,
-					userId: true,
-					name: true,
-					email: true,
-					subscriptionStatus: true,
-					usageCount: true,
-					usageLimit: true,
-					billingPeriodStart: true,
-					billingPeriodEnd: true
-				}
-			})
-		} catch (error) {
-			console.error('Failed to fetch user data:', error)
-		}
-	}
-
-	const user = userData
-		? {
-				id: userData.userId,
-				name: userData.name,
-				email: userData.email,
-				subscriptionStatus: userData.subscriptionStatus,
-				usageCount: userData.usageCount,
-				usageLimit: userData.usageLimit,
-				billingPeriodStart: userData.billingPeriodStart,
-				billingPeriodEnd: userData.billingPeriodEnd
-			}
-		: undefined
-
+	const user = await getUserData()
 	return (
 		<html lang="en">
 			<head>

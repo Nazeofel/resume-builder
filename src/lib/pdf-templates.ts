@@ -22,7 +22,7 @@ export interface PdfTemplateConfig {
     styles: {
         header: any;
         sectionTitle: any;
-        jobTitle: any;
+        role: any;
         company: any;
         date: any;
         description: any;
@@ -64,7 +64,7 @@ export const PDF_TEMPLATES: Record<string, PdfTemplateConfig> = {
                 paddingBottom: 4,
                 marginBottom: 10,
             },
-            jobTitle: {
+            role: {
                 fontSize: 11,
                 fontFamily: 'Helvetica-Bold',
                 color: '#3a3226',
@@ -118,7 +118,7 @@ export const PDF_TEMPLATES: Record<string, PdfTemplateConfig> = {
                 paddingBottom: 4,
                 marginBottom: 10,
             },
-            jobTitle: {
+            role: {
                 fontSize: 11,
                 fontFamily: 'Times-Bold',
                 color: '#3a3226',
@@ -171,7 +171,7 @@ export const PDF_TEMPLATES: Record<string, PdfTemplateConfig> = {
                 textTransform: 'uppercase',
                 marginBottom: 10,
             },
-            jobTitle: {
+            role: {
                 fontSize: 10,
                 fontFamily: 'Helvetica-Bold',
                 color: '#3a3226',
@@ -226,7 +226,7 @@ export const PDF_TEMPLATES: Record<string, PdfTemplateConfig> = {
                 paddingBottom: 4,
                 marginBottom: 10,
             },
-            jobTitle: {
+            role: {
                 fontSize: 11,
                 fontFamily: 'Helvetica-Bold',
                 color: '#3a3226',

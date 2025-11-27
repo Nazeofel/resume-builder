@@ -1,71 +1,30 @@
 import { atom } from 'jotai'
-import { atomWithStorage } from 'jotai/utils'
+import { Prisma, Experience, Skill, Education, Project, Certification, Language, CoverLetter } from '@prisma-generated/client'
 
-export interface ContactInfo {
-	fullName: string
-	headline: string
-	email: string
-	phone: string
-	address: string
-	linkedin: string
-	website: string
-}
+// Re-export types for convenience
+export type { Experience, Skill, Education, Project, Certification, Language }
 
-export interface Experience {
-	id: string
-	jobTitle: string
-	company: string
-	location: string
-	startDate: string
-	endDate: string
-	description: string
-}
+export type ContactInfo = Prisma.JsonObject
 
-export interface Skill {
-	id: string
-	name: string
-}
-
-export interface Education {
-	id: string
-	degree: string
-	fieldOfStudy?: string
-	school: string
-	startDate: string
-	endDate: string
-	gpa?: string
-}
-
-export interface Project {
-	id: string
-	name: string
-	description: string
-	technologies: string
-	link: string
-}
-
-export interface Certification {
+export type Award = {
 	id: string
 	name: string
 	issuer: string
 	date: string
-}
-
-export interface Award {
-	id: string
-	name: string
-	issuer: string
-	date: string
-}
-
-export interface Language {
-	id: string
-	name: string
-	proficiency: string
 }
 
 export interface ResumeData {
-	contactInfo: ContactInfo
+	id?: string
+	title: string
+	contactInfo: {
+		fullName: string
+		headline: string
+		email: string
+		phone: string
+		address: string
+		linkedin: string
+		website: string
+	}
 	experiences: Experience[]
 	skills: Skill[]
 	summary: string
@@ -77,10 +36,12 @@ export interface ResumeData {
 	currentStep: number
 	/** Template ID from TEMPLATES array (e.g., 'modern', 'classic', 'minimalist', 'creative') */
 	selectedTemplate: string
+	coverLetter?: CoverLetter
 }
 
-/** Resume data atom with automatic localStorage persistence via atomWithStorage */
-export const resumeDataAtom = atomWithStorage<ResumeData>('robo-resume-data', {
+/** Initial empty state for resume data */
+export const initialResumeData: ResumeData = {
+	title: 'Untitled Resume',
 	contactInfo: {
 		fullName: '',
 		headline: '',
@@ -99,8 +60,12 @@ export const resumeDataAtom = atomWithStorage<ResumeData>('robo-resume-data', {
 	awards: [],
 	languages: [],
 	currentStep: 1,
-	selectedTemplate: ''
-})
+	selectedTemplate: '',
+	coverLetter: undefined
+}
+
+/** Resume data atom - in-memory only, no persistence */
+export const resumeDataAtom = atom<ResumeData>(initialResumeData)
 
 /** Setter atom for partial updates. Nested objects/arrays must be passed completely to avoid data loss. */
 export const setResumeDataAtom = atom(null, (get, set, update: Partial<ResumeData>) => {
@@ -114,7 +79,7 @@ export const currentStepAtom = atom((get) => get(resumeDataAtom).currentStep)
 
 /** Setter atom for currentStep. Clamps value to range [1, 7]. */
 export const setCurrentStepAtom = atom(null, (get, set, step: number) => {
-	const clampedStep = Math.max(1, Math.min(7, step))
+	const clampedStep = Math.max(1, Math.min(8, step))
 	set(resumeDataAtom, {
 		...get(resumeDataAtom),
 		currentStep: clampedStep
@@ -127,7 +92,7 @@ export interface ValidationResult {
 }
 
 /** Validates contact info: requires fullName and valid email */
-export function validateContactInfo(contactInfo: ContactInfo): ValidationResult {
+export function validateContactInfo(contactInfo: ResumeData['contactInfo']): ValidationResult {
 	const errors: string[] = []
 
 	if (!contactInfo.fullName || contactInfo.fullName.trim() === '') {
@@ -160,18 +125,19 @@ export function validateExperience(experiences: Experience[]): ValidationResult 
 	}
 
 	experiences.forEach((exp, index) => {
-		if (!exp.jobTitle || exp.jobTitle.trim() === '') {
+		if (!exp.role || exp.role.trim() === '') {
 			errors.push(`Experience ${index + 1}: Job title is required`)
 		}
 		if (!exp.company || exp.company.trim() === '') {
 			errors.push(`Experience ${index + 1}: Company name is required`)
 		}
-		if (!exp.startDate || exp.startDate.trim() === '') {
+		if (!exp.startDate) {
 			errors.push(`Experience ${index + 1}: Start date is required`)
 		}
-		if (!exp.description || exp.description.trim() === '') {
-			errors.push(`Experience ${index + 1}: Job description is required`)
-		}
+		// Description is optional in Prisma schema but we might want to enforce it in UI
+		// if (!exp.description || exp.description.trim() === '') {
+		// 	errors.push(`Experience ${index + 1}: Job description is required`)
+		// }
 	})
 
 	return {
@@ -195,7 +161,7 @@ export function validateSkills(skills: Skill[]): ValidationResult {
 }
 
 /** Validates professional summary: requires at least 50 characters */
-export function validateSummary(summary: string): ValidationResult {
+export function validateSummary(summary: string | null): ValidationResult {
 	const errors: string[] = []
 
 	if (!summary || summary.trim().length < 50) {
@@ -225,11 +191,8 @@ export function validateEducation(education: Education[]): ValidationResult {
 		if (!edu.school || edu.school.trim() === '') {
 			errors.push(`Education ${index + 1}: School is required`)
 		}
-		if (!edu.startDate || edu.startDate.trim() === '') {
+		if (!edu.startDate) {
 			errors.push(`Education ${index + 1}: Start date is required`)
-		}
-		if (!edu.endDate || edu.endDate.trim() === '') {
-			errors.push(`Education ${index + 1}: End date is required`)
 		}
 	})
 
@@ -240,7 +203,7 @@ export function validateEducation(education: Education[]): ValidationResult {
 }
 
 /** Validates projects: all optional, always returns valid */
-export function validateProjects(projects: Project[]): ValidationResult {
+export function validateProjects(_projects: Project[]): ValidationResult {
 	return {
 		isValid: true,
 		errors: []
@@ -248,7 +211,7 @@ export function validateProjects(projects: Project[]): ValidationResult {
 }
 
 /** Validates template selection: requires non-empty template ID */
-export function validateTemplate(selectedTemplate: string): ValidationResult {
+export function validateTemplate(selectedTemplate: string | null): ValidationResult {
 	if (!selectedTemplate || selectedTemplate.trim() === '') {
 		return {
 			isValid: false,
@@ -287,7 +250,10 @@ export function validateStep(step: number, data: ResumeData): ValidationResult {
 		case 6:
 			return validateProjects(data.projects)
 		case 7:
-			// Review step doesn't need validation, but we can check everything again if we want
+			// Target Job & Cover Letter step - optional, but good to check if they want to generate
+			return { isValid: true, errors: [] }
+		case 8:
+			// Review step doesn't need validation
 			return { isValid: true, errors: [] }
 		default:
 			return { isValid: true, errors: [] }

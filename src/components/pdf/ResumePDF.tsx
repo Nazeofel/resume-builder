@@ -78,8 +78,8 @@ export const ResumePDF: React.FC<ResumePDFProps> = ({ data }) => {
             justifyContent: 'space-between',
             marginBottom: 2,
         },
-        jobTitle: {
-            ...tStyles.jobTitle,
+        role: {
+            ...tStyles.role,
         },
         company: {
             ...tStyles.company,
@@ -150,11 +150,11 @@ export const ResumePDF: React.FC<ResumePDFProps> = ({ data }) => {
                     <View key={exp.id} style={{ marginBottom: 12 }}>
                         <View style={styles.jobHeader}>
                             <View>
-                                <Text style={styles.jobTitle}>{exp.jobTitle}</Text>
+                                <Text style={styles.role}>{exp.role}</Text>
                                 <Text style={styles.company}>{exp.company} {exp.location ? `• ${exp.location}` : ''}</Text>
                             </View>
                             <Text style={styles.date}>
-                                {exp.startDate} - {exp.endDate || 'Present'}
+                                {exp.startDate ? new Date(exp.startDate).toLocaleDateString() : ''} - {exp.endDate ? new Date(exp.endDate).toLocaleDateString() : 'Present'}
                             </Text>
                         </View>
                         <Text style={styles.description}>{exp.description}</Text>
@@ -172,11 +172,11 @@ export const ResumePDF: React.FC<ResumePDFProps> = ({ data }) => {
                     <View key={edu.id} style={{ marginBottom: 8 }}>
                         <View style={styles.jobHeader}>
                             <View>
-                                <Text style={styles.jobTitle}>{edu.school}</Text>
+                                <Text style={styles.role}>{edu.school}</Text>
                                 <Text style={styles.company}>{edu.degree} in {edu.fieldOfStudy}</Text>
                             </View>
                             <Text style={styles.date}>
-                                {edu.startDate} - {edu.endDate || 'Present'}
+                                {edu.startDate ? new Date(edu.startDate).toLocaleDateString() : ''} - {edu.endDate ? new Date(edu.endDate).toLocaleDateString() : 'Present'}
                             </Text>
                         </View>
                         {edu.gpa && <Text style={styles.description}>GPA: {edu.gpa}</Text>}
@@ -208,7 +208,7 @@ export const ResumePDF: React.FC<ResumePDFProps> = ({ data }) => {
                 {projects.map((project) => (
                     <View key={project.id} style={{ marginBottom: 12 }}>
                         <View style={styles.jobHeader}>
-                            <Text style={{ ...styles.jobTitle, fontSize: 10 }}>{project.name}</Text>
+                            <Text style={{ ...styles.role, fontSize: 10 }}>{project.title}</Text>
                             {project.link && <Text style={{ ...styles.date, color: colors.primary }}>{project.link}</Text>}
                         </View>
                         <Text style={styles.description}>{project.description}</Text>

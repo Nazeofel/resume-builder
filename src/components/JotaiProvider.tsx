@@ -2,7 +2,8 @@
 
 import { Provider } from 'jotai'
 import { useHydrateAtoms } from 'jotai/utils'
-import { userAtom, type User } from '@/stores/user'
+import { userAtom } from '@/stores/user'
+import { User } from '@prisma-generated/client';
 
 function HydrateAtoms({ initialUser, children }: { initialUser?: User; children: React.ReactNode }) {
 	useHydrateAtoms([[userAtom, initialUser]])

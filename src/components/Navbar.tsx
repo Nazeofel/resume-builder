@@ -3,12 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'motion/react'
+import { User } from '@prisma-generated/client'
 interface NavbarProps {
 	isAuthenticated?: boolean
-	user?: {
-		name: string
-		avatar?: string
-	}
+	user?: User
 }
 
 export default function Navbar({ isAuthenticated = false, user }: NavbarProps) {
@@ -33,7 +31,9 @@ export default function Navbar({ isAuthenticated = false, user }: NavbarProps) {
 							/>
 						</svg>
 					</div>
-					<h2 className="text-xl font-bold tracking-tighter">Robo Resume</h2>
+					<Link href={isAuthenticated ? '/dashboard' : '/'}>
+						<h2 className="text-xl font-bold tracking-tighter cursor-pointer">Robo Resume</h2>
+					</Link>
 				</div>
 
 				{/* Desktop Menu */}
@@ -64,8 +64,8 @@ export default function Navbar({ isAuthenticated = false, user }: NavbarProps) {
 								className="h-10 w-10 cursor-pointer rounded-full bg-cover bg-center bg-no-repeat"
 								aria-label="User profile avatar"
 								style={{
-									backgroundImage: user?.avatar
-										? `url("${user.avatar}")`
+									backgroundImage: user?.image
+										? `url("${user.image}")`
 										: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAAkWZNtW9GGxfYSYMO-v5vVEi6aCMP4ToPr3JsiPSZbk-0pgQHyYEGykJg4neRGyjrlsnhb_9eHC097X30RNhdPStEeNj_pGtQUqMww6JDVCDivCw0SOPaN4JJqauMG62869tBKny38su70YSr71Ic6inhIsXS8IV7vOZYAdq3Ysln35JZYVRKVsAlwQZKpZllacdZvLaHrZxoLTYj5TjL_ZCbFivgTs9gveWylMvKhH3BNcz2cUOBX4b4u-BpDbl0jAvp1yeMgncP")'
 								}}
 							/>

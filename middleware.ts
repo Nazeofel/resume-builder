@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // Define protected routes
-    const protectedRoutes = ['/dashboard', '/success', '/cancel']
+    const protectedRoutes = ['/dashboard', '/success', '/builder', '/cancel']
     const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
 
     // Define auth routes
@@ -29,6 +29,11 @@ export async function middleware(request: NextRequest) {
         url.pathname = '/auth'
         url.searchParams.set('login', 'true')
         return NextResponse.redirect(url)
+    }
+
+    // Protect /success route - require session_id
+    if (pathname === '/success' && !request.nextUrl.searchParams.has('session_id')) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     // Redirect authenticated users trying to access auth routes

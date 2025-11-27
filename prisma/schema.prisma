@@ -21,6 +21,7 @@ model User {
 
   // Custom fields
   resumes            Resume[]
+  coverLetters       CoverLetter[]
   subscriptionStatus SubscriptionStatus @default(INACTIVE)
   usageCount         Int                @default(0)
   usageLimit         Int                @default(100)
@@ -88,34 +89,39 @@ model Education {
   startDate    DateTime
   endDate      DateTime?
   gpa          String?
-  resume       Resume    @relation(fields: [resumeId], references: [id])
+  resume       Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   resumeId     String
 }
 
 model Project {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  link        String?
-  startDate   DateTime?
-  endDate     DateTime?
-  resume      Resume    @relation(fields: [resumeId], references: [id])
-  resumeId    String
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  link         String?
+  technologies String?
+  startDate    DateTime?
+  endDate      DateTime?
+  resume       Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId     String
 }
 
 model Resume {
-  id          String       @id @default(cuid())
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  title       String       @db.VarChar(120)
-  summary     String?
-  contactInfo Json?
-  experiences Experience[]
-  skills      Skill[]
-  education   Education[]
-  projects    Project[]
-  owner       User?        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId     String?
+  id             String          @id @default(cuid())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  title          String          @db.VarChar(120)
+  summary        String?
+  contactInfo    Json?
+  template       String?
+  experiences    Experience[]
+  skills         Skill[]
+  education      Education[]
+  projects       Project[]
+  certifications Certification[]
+  languages      Language[]
+  coverLetters   CoverLetter[]
+  user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String?
 }
 
 model Experience {
@@ -127,7 +133,8 @@ model Experience {
   startDate   DateTime
   endDate     DateTime?
   description String?
-  resume      Resume    @relation(fields: [resumeId], references: [id])
+  location    String?
+  resume      Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   resumeId    String
 }
 
@@ -135,8 +142,25 @@ model Skill {
   id       String  @id @default(cuid())
   name     String
   level    String?
-  resume   Resume  @relation(fields: [resumeId], references: [id])
+  resume   Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   resumeId String
+}
+
+model Certification {
+  id       String  @id @default(cuid())
+  name     String
+  issuer   String
+  date     String?
+  resume   Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId String
+}
+
+model Language {
+  id          String @id @default(cuid())
+  name        String
+  proficiency String
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId    String
 }
 
 enum SubscriptionStatus {
@@ -156,4 +180,21 @@ model Password {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([email])
+}
+
+model CoverLetter {
+  id             String   @id @default(cuid())
+  title          String
+  content        String   @db.Text
+  status         String   @default("draft")
+  jobTitle       String?
+  companyName    String?
+  jobDescription String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  resume   Resume? @relation(fields: [resumeId], references: [id])
+  resumeId String?
 }

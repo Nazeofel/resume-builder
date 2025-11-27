@@ -1,36 +1,3 @@
-# Security
-
-Prevent non auth users from accessing important parts of the website, builder / dashboard
-Ideally, if they are logged in, they cannot access /auth
-
-and make the success and cancel page not accessible if you just navigate to them you know...
-
-# Account section
-
-Make a new acccount section in the dashboard with the following:
-
-- Make button available for users to retrieve their DATA (GDPR compliant)
-- Make a delete button to delete account
-- Form to change password / email at will
-
-# Subscription System - Implemented
-
-The subscription system has been successfully implemented with the following features:
-
-1. **Subscription Status**: Users have a subscription status (ACTIVE/INACTIVE/TRIAL)
-2. **Usage Tracking**: AI assists are tracked per billing period using `usageCount` and `usageLimit`
-3. **Tier System**:
-   - Free tier: 100 AI assists per month (INACTIVE status)
-   - Pro tier: Unlimited AI assists (ACTIVE status, usageLimit set to 999999)
-4. **Stripe Webhooks**: Handle subscription lifecycle automatically
-   - `checkout.session.completed`: Activates subscription, resets usage
-   - `customer.subscription.updated`: Renews billing period, resets usage
-   - `customer.subscription.deleted`: Deactivates subscription, reverts to free tier
-5. **AI Feature Gating**: Use `canUseAIFeatures()` from `src/lib/subscription.ts` to check permissions before allowing AI features
-
-For implementing new AI features, reference the placeholder at `app/api/ai/route.ts` which demonstrates the proper permission checking flow.
-
-# Stripe And Subscription - Refund Policy Status
 
 ## ✅ Completed
 

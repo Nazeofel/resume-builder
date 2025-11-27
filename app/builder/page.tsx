@@ -1,203 +1,72 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAtom } from 'jotai'
 import {
 	resumeDataAtom,
 	setResumeDataAtom,
 	currentStepAtom,
 	setCurrentStepAtom,
-	Experience,
-	Education,
-	Skill,
-	Project,
-	Certification,
-	Language,
-	validateStep
+	validateStep,
+	initialResumeData
 } from '@/stores/builder'
-import { BuilderFormField, BuilderTextarea, BuilderSelect, ExperienceCard, EducationCard, SkillTag, ProjectCard, CertificationTag, LanguageTag, TemplateSelector, ExportButtons, StepProgress, NavigationButtons, ResumePreview } from '@/components/builder'
-import { Combobox } from '@/components/ui/combobox'
-import Link from 'next/link'
-import { skills } from '@/lib/arrays'
+import { ResumePreview } from '@/components/builder'
+import { AuthDialog } from '@/components/AuthDialog'
+import { userAtom } from '@/stores/user'
+import { useDebounce } from '@/hooks/use-debounce'
+import { TemplateSelection } from './steps/TemplateSelection'
+import { ContactInfo } from './steps/ContactInfo'
+import { ExperienceSkills } from './steps/ExperienceSkills'
+import { ProfessionalSummary } from './steps/ProfessionalSummary'
+import { EducationStep } from './steps/Education'
+import { ProjectsExtras } from './steps/ProjectsExtras'
+import { TargetJob } from './steps/TargetJob'
+import { ReviewExport } from './steps/ReviewExport'
+import { BuilderHeader } from './BuilderHeader'
 
 export default function BuilderPage() {
 	const [resumeData] = useAtom(resumeDataAtom)
 	const [, setResumeDataPartial] = useAtom(setResumeDataAtom)
 	const [currentStep] = useAtom(currentStepAtom)
 	const [, setCurrentStep] = useAtom(setCurrentStepAtom)
-	const [skillInput, setSkillInput] = useState('')
-	const [certificationInput, setCertificationInput] = useState('')
-	const [languageInput, setLanguageInput] = useState('')
-	const [languageProficiency, setLanguageProficiency] = useState('Native')
 	const [validationErrors, setValidationErrors] = useState<string[]>([])
+	const [resumeId, setResumeId] = useState<string | null>(null)
+	const [user] = useAtom(userAtom)
+	const [isSaving, setIsSaving] = useState(false)
+	const [lastSaved, setLastSaved] = useState<Date | null>(null)
+	const [showAuthModal, setShowAuthModal] = useState(false)
+	const debouncedResumeData = useDebounce(resumeData, 2000)
+	const isFirstRender = useRef(true)
 
-	const handleContactChange = (field: keyof typeof resumeData.contactInfo, value: string) => {
-		setResumeDataPartial({
-			contactInfo: {
-				...resumeData.contactInfo,
-				[field]: value
+	// Initialize resumeId from URL on mount (single source of truth)
+	useEffect(() => {
+		const urlSearchParams = new URLSearchParams(window.location.search)
+		const resumeIdParam = urlSearchParams.get('resumeId')
+		if (resumeIdParam && resumeIdParam !== 'new') {
+			setResumeId(resumeIdParam)
+		} else {
+			// Reset state for new resume
+			setResumeDataPartial(initialResumeData)
+			setCurrentStep(1)
+		}
+	}, [])
+
+	// Fetch resume data when resumeId is set
+	useEffect(() => {
+		if (resumeId && user) {
+			const fetchResume = async () => {
+				const res = await fetch('/api/resumes?resumeId=' + resumeId)
+
+				console.log(res)
+				if (res.ok) {
+					const data = await res.json()
+					setResumeDataPartial(data)
+				}
 			}
-		})
-	}
 
-	// Experience handlers
-	const handleAddExperience = () => {
-		const newExperience: Experience = {
-			id: crypto.randomUUID(),
-			jobTitle: '',
-			company: '',
-			location: '',
-			startDate: '',
-			endDate: '',
-			description: ''
+			fetchResume()
 		}
-		setResumeDataPartial({
-			experiences: [...resumeData.experiences, newExperience]
-		})
-	}
-
-	const handleRemoveExperience = (id: string) => {
-		setResumeDataPartial({
-			experiences: resumeData.experiences.filter((exp) => exp.id !== id)
-		})
-	}
-
-	const handleUpdateExperience = (id: string, field: keyof Experience, value: string) => {
-		setResumeDataPartial({
-			experiences: resumeData.experiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp))
-		})
-	}
-
-	// Skills handlers
-	const handleAddSkill = (skillName?: string) => {
-		const nameToAdd = skillName || skillInput
-		if (!nameToAdd.trim()) return
-
-		const newSkill: Skill = {
-			id: crypto.randomUUID(),
-			name: nameToAdd.trim()
-		}
-		setResumeDataPartial({
-			skills: [...resumeData.skills, newSkill]
-		})
-		setSkillInput('')
-	}
-
-	const handleRemoveSkill = (id: string) => {
-		setResumeDataPartial({
-			skills: resumeData.skills.filter((skill) => skill.id !== id)
-		})
-	}
-
-	// Summary handler
-	const handleSummaryChange = (value: string) => {
-		setResumeDataPartial({ summary: value })
-	}
-
-	// Education handlers
-	const handleAddEducation = () => {
-		const newEducation: Education = {
-			id: crypto.randomUUID(),
-			degree: '',
-			fieldOfStudy: '',
-			school: '',
-			startDate: '',
-			endDate: '',
-			gpa: ''
-		}
-		setResumeDataPartial({
-			education: [...resumeData.education, newEducation]
-		})
-	}
-
-	const handleRemoveEducation = (id: string) => {
-		setResumeDataPartial({
-			education: resumeData.education.filter((edu) => edu.id !== id)
-		})
-	}
-
-	const handleUpdateEducation = (id: string, field: keyof Education, value: string) => {
-		setResumeDataPartial({
-			education: resumeData.education.map((edu) => (edu.id === id ? { ...edu, [field]: value } : edu))
-		})
-	}
-
-	// Project handlers
-	const handleAddProject = () => {
-		const newProject: Project = {
-			id: crypto.randomUUID(),
-			name: '',
-			link: '',
-			description: '',
-			technologies: ''
-		}
-		setResumeDataPartial({
-			projects: [...resumeData.projects, newProject]
-		})
-	}
-
-	const handleRemoveProject = (id: string) => {
-		setResumeDataPartial({
-			projects: resumeData.projects.filter((project) => project.id !== id)
-		})
-	}
-
-	const handleUpdateProject = (id: string, field: keyof Project, value: string) => {
-		setResumeDataPartial({
-			projects: resumeData.projects.map((project) => (project.id === id ? { ...project, [field]: value } : project))
-		})
-	}
-
-	// Certification handlers
-	const handleAddCertification = () => {
-		if (!certificationInput.trim()) return
-
-		const newCertification: Certification = {
-			id: crypto.randomUUID(),
-			name: certificationInput.trim(),
-			issuer: '',
-			date: ''
-		}
-		setResumeDataPartial({
-			certifications: [...resumeData.certifications, newCertification]
-		})
-		setCertificationInput('')
-	}
-
-	const handleRemoveCertification = (id: string) => {
-		setResumeDataPartial({
-			certifications: resumeData.certifications.filter((cert) => cert.id !== id)
-		})
-	}
-
-	// Language handlers
-	const handleAddLanguage = () => {
-		if (!languageInput.trim()) return
-
-		const newLanguage: Language = {
-			id: crypto.randomUUID(),
-			name: languageInput.trim(),
-			proficiency: languageProficiency
-		}
-		setResumeDataPartial({
-			languages: [...resumeData.languages, newLanguage]
-		})
-		setLanguageInput('')
-		setLanguageProficiency('Native')
-	}
-
-	const handleRemoveLanguage = (id: string) => {
-		setResumeDataPartial({
-			languages: resumeData.languages.filter((lang) => lang.id !== id)
-		})
-	}
-
-	/** Receives template ID from TemplateSelector and updates resume data */
-	const handleTemplateSelect = (template: string) => {
-		setResumeDataPartial({
-			selectedTemplate: template
-		})
-	}
+	}, [resumeId, user])
 
 	const handleNext = () => {
 		// Validate current step before proceeding
@@ -226,21 +95,64 @@ export default function BuilderPage() {
 		window.scrollTo({ top: 0, behavior: 'smooth' })
 	}
 
-	const handleSave = () => {
+	const saveResume = async (silent = false) => {
+		if (!user) {
+			if (!silent) setShowAuthModal(true)
+			return
+		}
+
+		setIsSaving(true)
 		try {
-			// Manual backup save to localStorage (atomWithStorage already handles auto-save)
-			localStorage.setItem('robo-resume-data', JSON.stringify(resumeData))
+			// Map data to match database schema
+			// Map data to match database schema
+			// Store data already matches Prisma schema for the most part
+			const mappedData = {
+				...resumeData,
+				// Ensure dates are valid Date objects or strings that API can handle
+				// If they are Date objects in store, JSON.stringify will make them strings.
+				// If they are strings in store (legacy), they are strings.
+				// The API endpoint should handle parsing.
+			}
 
-			// Log timestamp for debugging
-			console.log('[Resume Save] Manual save triggered at:', new Date().toISOString())
+			const response = await fetch('/api/resumes/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					resumeId: resumeId,
+					data: mappedData,
+					title: resumeData.contactInfo.fullName || 'Untitled Resume',
+					template: resumeData.selectedTemplate
+				})
+			})
 
-			// Show success feedback to user
-			window.alert('Resume saved successfully! Your data is safely stored locally.')
+			if (!response.ok) throw new Error('Failed to save')
+
+			const result = await response.json()
+			if (result.success) {
+				setResumeId(result.resumeId)
+				setLastSaved(new Date())
+				if (!silent) {
+					// Optional: Show success toast here
+				}
+			}
 		} catch (error) {
-			console.error('[Resume Save] Error saving resume:', error)
-			window.alert('Failed to save resume. Please try again.')
+			console.error('Save error:', error)
+			if (!silent) window.alert('Failed to save resume')
+		} finally {
+			setIsSaving(false)
 		}
 	}
+
+	const handleSave = () => {
+		saveResume(false)
+	}
+
+	//Auto-save effect
+	// useEffect(() => {
+	// 	if (user && ) {
+	// 		saveResume(true)
+	// 	}
+	// }, [debouncedResumeData])
 
 	const handleDownload = async (format: 'pdf' | 'word' | 'text' = 'pdf') => {
 		if (format === 'pdf') {
@@ -262,6 +174,14 @@ export default function BuilderPage() {
 				console.error('Error generating PDF:', error);
 				window.alert('Failed to generate PDF. Please try again.');
 			}
+		} else if (format === 'word') {
+			try {
+				const { generateDocx } = await import('@/lib/docx-generator');
+				await generateDocx(resumeData);
+			} catch (error) {
+				console.error('Error generating Word document:', error);
+				window.alert('Failed to generate Word document. Please try again.');
+			}
 		} else {
 			console.log(`[Resume Download] Format: ${format}, Current resume data:`, resumeData)
 			window.alert(`Download as ${format.toUpperCase()} functionality coming soon! Your resume data is saved locally.`)
@@ -270,50 +190,13 @@ export default function BuilderPage() {
 
 	return (
 		<div className="flex flex-col min-h-screen bg-background-light">
-			{/* Header */}
-			<header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-color/50 px-6 md:px-10 py-3 bg-background-light sticky top-0 z-20">
-				<div className="flex items-center gap-4 text-text-main">
-					<div className="size-4">
-						<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<path
-								d="M39.7107 13.2608L40.0732 12.2742L39.7107 13.2608ZM41.835 22.2146L42.8302 22.4381L41.835 22.2146ZM39.7107 34.7392L40.0732 35.7258L39.7107 34.7392ZM8.28928 34.7392L7.92678 35.7258L8.28928 34.7392ZM6.16502 22.2146L5.16978 22.4381L6.16502 22.2146ZM8.28928 13.2608L7.92678 12.2742L8.28928 13.2608ZM39.3482 14.2474C37.4285 13.5762 35.4156 13.2143 33.3571 13.2143V11.2143C35.6235 11.2143 37.8405 11.6094 39.9512 12.3408L39.3482 14.2474ZM33.3571 13.2143H14.6429V11.2143H33.3571V13.2143ZM14.6429 13.2143C12.5844 13.2143 10.5715 13.5762 8.65178 14.2474L8.06538 12.3408C10.1761 11.6094 12.3931 11.2143 14.6429 11.2143V13.2143ZM8.65178 14.2474C4.38652 15.7085 1.21429 19.6241 1.21429 24.214H-0.785713C-0.785713 18.6762 3.00066 14.0058 7.92678 12.2742L8.65178 14.2474ZM1.21429 24.214C1.21429 28.804 4.38652 32.7195 8.65178 34.1806L8.06538 36.0872C3.00066 34.3556 -0.785713 29.6852 -0.785713 24.214H1.21429ZM8.65178 34.1806C10.5715 34.8518 12.5844 35.2137 14.6429 35.2137V37.2137C12.3931 37.2137 10.1761 36.8186 8.06538 36.0872L8.65178 34.1806ZM14.6429 35.2137H33.3571V37.2137H14.6429V35.2137ZM33.3571 35.2137C35.4156 35.2137 37.4285 34.8518 39.3482 34.1806L39.9512 36.0872C37.8405 36.8186 35.6235 37.2137 33.3571 37.2137V35.2137ZM39.3482 34.1806C43.6135 32.7195 46.7857 28.804 46.7857 24.214H48.7857C48.7857 29.6852 44.9993 34.3556 40.0732 36.0872L39.3482 34.1806ZM46.7857 24.214C46.7857 19.6241 43.6135 15.7085 39.3482 14.2474L39.9512 12.3408C44.9993 14.0058 48.7857 18.6762 48.7857 24.214H46.7857Z"
-								fill="currentColor"
-							/>
-						</svg>
-					</div>
-					<h2 className="text-xl font-bold leading-tight tracking-[-0.015em]">ResumeBuilder</h2>
-				</div>
-				<div className="flex flex-1 justify-end gap-8">
-					<div className="hidden md:flex items-center gap-9">
-						<Link href="/dashboard" className="text-sm font-medium leading-normal">
-							Dashboard
-						</Link>
-						<Link href="/templates" className="text-sm font-medium leading-normal">
-							Templates
-						</Link>
-					</div>
-					<div className="flex gap-2">
-						<button
-							onClick={handleSave}
-							className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-border-color/60 text-text-main text-sm font-bold leading-normal tracking-[0.015em] hover:bg-border-color/80 transition-colors"
-						>
-							<span className="truncate">Save</span>
-						</button>
-						<button
-							onClick={() => handleDownload('pdf')}
-							className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors"
-						>
-							<span className="truncate">Download</span>
-						</button>
-					</div>
-					<div
-						className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-						style={{
-							backgroundImage: 'url("https://cdn.usegalileo.ai/stability/e2060837-caa0-48f0-a90e-f776319037f7.png")'
-						}}
-					></div>
-				</div>
-			</header>
+			<BuilderHeader
+				isSaving={isSaving}
+				lastSaved={lastSaved}
+				onSave={handleSave}
+				onDownload={handleDownload}
+			/>
+			<AuthDialog open={showAuthModal} onOpenChange={setShowAuthModal} />
 
 			{/* Main Content */}
 			<main className="flex-grow w-full max-w-screen-2xl mx-auto px-6 md:px-10 py-8">
@@ -353,505 +236,14 @@ export default function BuilderPage() {
 							</div>
 						)}
 
-						{/* Step 1: Template Selection */}
-						{currentStep === 1 && (
-							<>
-								<StepProgress currentStep={1} totalSteps={7} stepLabel="Choose Template" />
-								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
-									<div className="flex flex-col gap-3">
-										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Choose Template</h1>
-										<p className="text-text-subtle text-base font-normal leading-normal">
-											Select a template to get started with your resume.
-										</p>
-									</div>
-
-									<div className="flex flex-col gap-4">
-										<TemplateSelector
-											selectedTemplate={resumeData.selectedTemplate}
-											onSelect={handleTemplateSelect}
-										/>
-									</div>
-
-									<NavigationButtons
-										onPrevious={handlePrevious}
-										onNext={handleNext}
-										previousDisabled={true}
-										showPrevious={false}
-										showNext={true}
-									/>
-								</div>
-							</>
-						)}
-
-						{/* Step 2: Contact Info */}
-						{currentStep === 2 && (
-							<>
-								<StepProgress currentStep={2} totalSteps={7} stepLabel="Contact Info" />
-								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
-									<div className="flex flex-col gap-3">
-										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Contact Information</h1>
-										<p className="text-text-subtle text-base font-normal leading-normal">
-											Let's start with the basics. Enter your contact information below.
-										</p>
-									</div>
-
-									<div className="flex flex-col gap-6">
-										{/* Row 1: Full Name and Headline */}
-										<div className="flex flex-col md:flex-row gap-6">
-											<div className="flex-1 min-w-40">
-												<BuilderFormField
-													id="fullName"
-													name="fullName"
-													label="Full Name"
-													type="text"
-													placeholder="John Doe"
-													value={resumeData.contactInfo.fullName}
-													onChange={(e) => handleContactChange('fullName', e.target.value)}
-												/>
-											</div>
-											<div className="flex-1 min-w-40">
-												<BuilderFormField
-													id="headline"
-													name="headline"
-													label="Headline"
-													type="text"
-													placeholder="Software Engineer"
-													value={resumeData.contactInfo.headline}
-													onChange={(e) => handleContactChange('headline', e.target.value)}
-												/>
-											</div>
-										</div>
-
-										{/* Row 2: Email and Phone */}
-										<div className="flex flex-col md:flex-row gap-6">
-											<div className="flex-1 min-w-40">
-												<BuilderFormField
-													id="email"
-													name="email"
-													label="Email Address"
-													type="email"
-													placeholder="john@example.com"
-													value={resumeData.contactInfo.email}
-													onChange={(e) => handleContactChange('email', e.target.value)}
-												/>
-											</div>
-											<div className="flex-1 min-w-40">
-												<BuilderFormField
-													id="phone"
-													name="phone"
-													label="Phone Number"
-													type="tel"
-													placeholder="+1 (555) 123-4567"
-													value={resumeData.contactInfo.phone}
-													onChange={(e) => handleContactChange('phone', e.target.value)}
-												/>
-											</div>
-										</div>
-
-										{/* Row 3: Address (full width) */}
-										<div>
-											<BuilderFormField
-												id="address"
-												name="address"
-												label="Address"
-												type="text"
-												placeholder="City, State, Country"
-												value={resumeData.contactInfo.address}
-												onChange={(e) => handleContactChange('address', e.target.value)}
-											/>
-										</div>
-
-										{/* Row 4: LinkedIn and Website */}
-										<div className="flex flex-col md:flex-row gap-6">
-											<div className="flex-1 min-w-40">
-												<BuilderFormField
-													id="linkedin"
-													name="linkedin"
-													label="LinkedIn Profile"
-													type="url"
-													placeholder="linkedin.com/in/johndoe"
-													value={resumeData.contactInfo.linkedin}
-													onChange={(e) => handleContactChange('linkedin', e.target.value)}
-												/>
-											</div>
-											<div className="flex-1 min-w-40">
-												<BuilderFormField
-													id="website"
-													name="website"
-													label="Website/Portfolio"
-													type="url"
-													placeholder="johndoe.com"
-													value={resumeData.contactInfo.website}
-													onChange={(e) => handleContactChange('website', e.target.value)}
-												/>
-											</div>
-										</div>
-									</div>
-
-									{/* Navigation Buttons */}
-									<NavigationButtons
-										onPrevious={handlePrevious}
-										onNext={handleNext}
-										previousDisabled={false}
-										showPrevious={true}
-										showNext={true}
-									/>
-								</div>
-							</>
-						)}
-
-						{/* Step 3: Experience & Skills */}
-						{currentStep === 3 && (
-							<>
-								<StepProgress currentStep={3} totalSteps={7} stepLabel="Experience & Skills" />
-								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
-									{/* Work Experience Section */}
-									<div className="flex flex-col gap-6">
-										<div className="flex flex-col gap-3">
-											<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Work Experience</h1>
-											<p className="text-text-subtle text-base font-normal leading-normal">
-												Share your relevant work history. Start with your most recent job.
-											</p>
-										</div>
-
-										{/* Experience Cards */}
-										<div className="flex flex-col gap-6">
-											{resumeData.experiences.map((experience, index) => (
-												<ExperienceCard
-													key={experience.id}
-													experience={experience}
-													index={index}
-													onUpdate={(field, value) => handleUpdateExperience(experience.id, field, value)}
-													onDelete={() => handleRemoveExperience(experience.id)}
-												/>
-											))}
-
-											{/* Add Experience Button */}
-											<button
-												onClick={handleAddExperience}
-												className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-border-color bg-border-color/20 hover:bg-border-color/40 rounded-lg transition-colors"
-											>
-												<span className="font-medium">Add another experience</span>
-											</button>
-										</div>
-									</div>
-
-									{/* Skills Section */}
-									<div className="pt-8 border-t border-border-color/30 flex flex-col gap-6">
-										<div className="flex flex-col gap-3">
-											<h2 className="text-2xl font-bold">Skills</h2>
-											<p className="text-text-subtle text-base font-normal leading-normal">
-												Highlight your key skills.
-											</p>
-										</div>
-
-										{/* Existing Skills */}
-										{resumeData.skills.length > 0 && (
-											<div className="flex flex-wrap gap-3">
-												{resumeData.skills.map((skill) => (
-													<SkillTag key={skill.id} skill={skill} onRemove={() => handleRemoveSkill(skill.id)} />
-												))}
-											</div>
-										)}
-
-										{/* Add Skill Input */}
-										<div className="flex items-end gap-4">
-											<div className="flex-1 relative flex flex-col gap-2">
-												<label className="text-base font-medium text-text-main">Add a skill</label>
-												<Combobox
-													value={skillInput}
-													onSelect={(value) => {
-														setSkillInput(value)
-														handleAddSkill(value)
-													}}
-													placeholder="e.g., UI/UX Design"
-													searchPlaceholder="Search skills..."
-													staticOptions={skills}
-												/>
-											</div>
-											<button
-												onClick={() => handleAddSkill()}
-												className="h-10 px-6 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
-											>
-												Add
-											</button>
-										</div>
-									</div>
-
-									{/* Navigation Buttons */}
-									<NavigationButtons
-										onPrevious={handlePrevious}
-										onNext={handleNext}
-										previousDisabled={false}
-										showPrevious={true}
-										showNext={true}
-									/>
-								</div>
-							</>
-						)}
-
-						{/* Step 4: Professional Summary */}
-						{currentStep === 4 && (
-							<>
-								<StepProgress currentStep={4} totalSteps={7} stepLabel="Professional Summary" />
-								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
-									<div className="flex flex-col gap-3">
-										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Professional Summary</h1>
-										<p className="text-text-subtle text-base font-normal leading-normal">
-											Write a compelling 2-3 paragraph summary highlighting your career highlights and strengths.
-										</p>
-									</div>
-
-									<div>
-										<BuilderTextarea
-											id="summary"
-											label="Summary"
-											value={resumeData.summary}
-											onChange={(e) => handleSummaryChange(e.target.value)}
-											placeholder="Start with your most recent role and key achievements..."
-											rows={8}
-											showAIButton={true}
-											onAIClick={() => { }}
-										/>
-									</div>
-
-									{/* Navigation Buttons */}
-									<NavigationButtons
-										onPrevious={handlePrevious}
-										onNext={handleNext}
-										previousDisabled={false}
-										showPrevious={true}
-										showNext={true}
-									/>
-								</div>
-							</>
-						)}
-
-						{/* Step 5: Education */}
-						{currentStep === 5 && (
-							<>
-								<StepProgress currentStep={5} totalSteps={7} stepLabel="Education" />
-								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
-									<div className="flex flex-col gap-3">
-										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Education</h1>
-										<p className="text-text-subtle text-base font-normal leading-normal">
-											Add your educational background, including degrees, certifications, and relevant coursework.
-										</p>
-									</div>
-
-									{/* Education Cards */}
-									<div className="flex flex-col gap-6">
-										{resumeData.education.map((education, index) => (
-											<EducationCard
-												key={education.id}
-												education={education}
-												index={index}
-												onUpdate={(field, value) => handleUpdateEducation(education.id, field, value)}
-												onDelete={() => handleRemoveEducation(education.id)}
-											/>
-										))}
-
-										{/* Add another education button */}
-										<button
-											onClick={handleAddEducation}
-											className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-border-color bg-border-color/20 hover:bg-border-color/40 rounded-lg transition-colors"
-										>
-											<span className="material-symbols-rounded">add</span>
-											<span className="text-base font-bold text-text-main">Add another education</span>
-										</button>
-									</div>
-
-									{/* Navigation Buttons */}
-									<NavigationButtons
-										onPrevious={handlePrevious}
-										onNext={handleNext}
-										previousDisabled={false}
-										showPrevious={true}
-										showNext={true}
-									/>
-								</div>
-							</>
-						)}
-
-						{/* Step 6: Projects & Extras */}
-						{currentStep === 6 && (
-							<>
-								<StepProgress currentStep={6} totalSteps={7} stepLabel="Projects & Extras" />
-								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
-									<div className="flex flex-col gap-3">
-										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Projects & Extras</h1>
-										<p className="text-text-subtle text-base font-normal leading-normal">
-											Showcase your projects, certifications, and languages to stand out from the crowd.
-										</p>
-									</div>
-
-									{/* Projects Section */}
-									<div className="flex flex-col gap-4">
-										<h2 className="text-2xl font-bold text-text-main">Projects</h2>
-										<div className="space-y-4">
-											{resumeData.projects.map((project, index) => (
-												<ProjectCard
-													key={project.id}
-													project={project}
-													index={index}
-													onUpdate={(field, value) => handleUpdateProject(project.id, field, value)}
-													onDelete={() => handleRemoveProject(project.id)}
-												/>
-											))}
-										</div>
-										<button
-											onClick={handleAddProject}
-											className="flex items-center justify-center gap-2 p-4 bg-white/30 border-2 border-dashed border-border-color/50 rounded-lg text-text-subtle hover:border-primary hover:text-primary transition-colors"
-										>
-											<span className="material-symbols-outlined">add</span>
-											<span>Add another project</span>
-										</button>
-									</div>
-
-									{/* Certifications Section */}
-									<div className="flex flex-col gap-4 pt-6 border-t border-border-color/30">
-										<h2 className="text-2xl font-bold text-text-main">Certifications</h2>
-										{resumeData.certifications.length > 0 && (
-											<div className="flex flex-wrap gap-2">
-												{resumeData.certifications.map((cert) => (
-													<CertificationTag
-														key={cert.id}
-														certification={cert}
-														onRemove={() => handleRemoveCertification(cert.id)}
-													/>
-												))}
-											</div>
-										)}
-										<div className="flex gap-2">
-											<BuilderFormField
-												id="certificationInput"
-												name="certificationInput"
-												label=""
-												value={certificationInput}
-												onChange={(e) => setCertificationInput(e.target.value)}
-												placeholder="E.g., AWS Certified Solutions Architect"
-												onKeyDown={(e) => {
-													if (e.key === 'Enter') {
-														e.preventDefault()
-														handleAddCertification()
-													}
-												}}
-											/>
-											<button
-												onClick={handleAddCertification}
-												className="mt-auto h-12 px-6 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-											>
-												Add
-											</button>
-										</div>
-									</div>
-
-									{/* Languages Section */}
-									<div className="flex flex-col gap-4 pt-6 border-t border-border-color/30">
-										<h2 className="text-2xl font-bold text-text-main">Languages</h2>
-										{resumeData.languages.length > 0 && (
-											<div className="flex flex-wrap gap-2">
-												{resumeData.languages.map((lang) => (
-													<LanguageTag
-														key={lang.id}
-														language={lang}
-														onRemove={() => handleRemoveLanguage(lang.id)}
-													/>
-												))}
-											</div>
-										)}
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-											<BuilderFormField
-												id="languageInput"
-												name="languageInput"
-												label=""
-												value={languageInput}
-												onChange={(e) => setLanguageInput(e.target.value)}
-												placeholder="E.g., Spanish"
-												onKeyDown={(e) => {
-													if (e.key === 'Enter') {
-														e.preventDefault()
-														handleAddLanguage()
-													}
-												}}
-											/>
-											<div className="flex gap-2">
-												<BuilderSelect
-													id="languageProficiency"
-													label=""
-													value={languageProficiency}
-													onValueChange={setLanguageProficiency}
-													options={[
-														{ value: 'Native', label: 'Native' },
-														{ value: 'Fluent', label: 'Fluent' },
-														{ value: 'Conversational', label: 'Conversational' },
-														{ value: 'Basic', label: 'Basic' }
-													]}
-												/>
-												<button
-													onClick={handleAddLanguage}
-													className="mt-auto h-12 px-6 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap"
-												>
-													Add
-												</button>
-											</div>
-										</div>
-									</div>
-
-									{/* Navigation Buttons */}
-									<NavigationButtons
-										onPrevious={handlePrevious}
-										onNext={handleNext}
-										previousDisabled={false}
-										showPrevious={true}
-										showNext={true}
-									/>
-								</div>
-							</>
-						)}
-
-						{/* Step 7: Review & Export */}
-						{currentStep === 7 && (
-							<>
-								<div className="flex items-center justify-between gap-4">
-									<StepProgress currentStep={7} totalSteps={7} stepLabel="Review & Export" />
-									<span className="text-primary text-base font-bold flex items-center gap-2">
-										<span className="material-symbols-outlined">check_circle</span>
-										Complete!
-									</span>
-								</div>
-								<div className="flex flex-col gap-8 bg-secondary-bg/50 p-6 md:p-8 rounded-xl border border-border-color/30">
-									<div className="flex flex-col gap-3">
-										<h1 className="text-4xl font-black leading-tight tracking-[-0.033em]">Review & Export</h1>
-										<p className="text-text-subtle text-base font-normal leading-normal">
-											Review your resume and export it in your preferred format.
-										</p>
-									</div>
-
-									{/* Export Format Section */}
-									<div className="flex flex-col gap-4 pt-6 border-t border-border-color/30">
-										<h2 className="text-2xl font-bold text-text-main">Export Format</h2>
-										<ExportButtons onExport={handleDownload} />
-									</div>
-
-									{/* Pro Tip */}
-									<div className="bg-highlight/30 rounded-lg border border-border-color/30 p-4 flex gap-3">
-										<span className="material-symbols-rounded text-primary">lightbulb</span>
-										<p className="text-sm text-text-main">
-											<strong>Pro Tip:</strong> Tailor your resume for each job application by adjusting your summary and skills.
-										</p>
-									</div>
-
-									<NavigationButtons
-										onPrevious={handlePrevious}
-										onNext={() => { }} // No next step
-										previousDisabled={false}
-										showPrevious={true}
-										showNext={false}
-									/>
-								</div>
-							</>
-						)}
+						{currentStep === 1 && <TemplateSelection onNext={handleNext} onPrevious={handlePrevious} />}
+						{currentStep === 2 && <ContactInfo onNext={handleNext} onPrevious={handlePrevious} />}
+						{currentStep === 3 && <ExperienceSkills onNext={handleNext} onPrevious={handlePrevious} />}
+						{currentStep === 4 && <ProfessionalSummary onNext={handleNext} onPrevious={handlePrevious} />}
+						{currentStep === 5 && <EducationStep onNext={handleNext} onPrevious={handlePrevious} />}
+						{currentStep === 6 && <ProjectsExtras onNext={handleNext} onPrevious={handlePrevious} />}
+						{currentStep === 7 && <TargetJob onNext={handleNext} onBack={handlePrevious} />}
+						{currentStep === 8 && <ReviewExport onPrevious={handlePrevious} onExport={handleDownload} />}
 					</div>
 
 					{/* Right Column - Preview */}

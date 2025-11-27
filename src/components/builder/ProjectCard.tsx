@@ -6,7 +6,7 @@ import { BuilderTextarea } from './BuilderTextarea'
 
 interface ProjectCardProps {
   project: Project
-  onUpdate: (field: keyof Project, value: string) => void
+  onUpdate: (field: keyof Project, value: any) => void
   onDelete: () => void
   index: number
 }
@@ -36,8 +36,8 @@ export function ProjectCard({ project, onUpdate, onDelete, index }: ProjectCardP
             id={`project-${index}-name`}
             name={`project-${index}-name`}
             label="Project Name"
-            value={project.name}
-            onChange={(e) => onUpdate('name', e.target.value)}
+            value={project.title}
+            onChange={(e) => onUpdate('title', e.target.value)}
             placeholder="E.g., E-commerce Platform"
             required
           />
@@ -55,7 +55,7 @@ export function ProjectCard({ project, onUpdate, onDelete, index }: ProjectCardP
         <BuilderTextarea
           id={`project-${index}-description`}
           label="Description"
-          value={project.description}
+          value={project.description || ''}
           onChange={(e) => onUpdate('description', e.target.value)}
           placeholder="Describe what you built, technologies used, and impact..."
           rows={3}
@@ -67,7 +67,7 @@ export function ProjectCard({ project, onUpdate, onDelete, index }: ProjectCardP
           id={`project-${index}-technologies`}
           name={`project-${index}-technologies`}
           label="Technologies Used"
-          value={project.technologies}
+          value={project.technologies || ''}
           onChange={(e) => onUpdate('technologies', e.target.value)}
           placeholder="E.g., React, Node.js, MongoDB, AWS"
         />

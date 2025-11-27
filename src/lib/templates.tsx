@@ -21,13 +21,13 @@ interface TemplateStyleConfig {
 		container: string
 	}
 	experience: {
-		jobTitle: string
+		role: string
 		dateRange: string
 		company: string
 		description: string
 	}
 	project: {
-		name: string
+		title: string
 		description: string
 		technologies: string
 		link: string
@@ -81,10 +81,11 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 
 	// Sidebar layout rendering
 	if (styles.layout === 'sidebar' && styles.sidebar && styles.mainContent) {
+		const sidebarStyles = styles.sidebar
 		return (
 			<div className="bg-white grid grid-cols-3 gap-0 min-h-full">
 				{/* Sidebar (Left Column) */}
-				<div className={styles.sidebar.container}>
+				<div className={sidebarStyles.container}>
 					{/* Contact Info */}
 					<div className="mb-6">
 						<h1 className={styles.header.name}>{contactInfo.fullName || 'Your Name'}</h1>
@@ -95,20 +96,20 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 						{/* Contact Details */}
 						{(contactInfo.phone || contactInfo.email || contactInfo.address || contactInfo.linkedin || contactInfo.website) && (
 							<div>
-								<h2 className={styles.sidebar.sectionTitle}>{sidebarLabels.contact}</h2>
+								<h2 className={sidebarStyles.sectionTitle}>{sidebarLabels.contact}</h2>
 								<div className="mt-3 space-y-2">
-									{contactInfo.phone && <div className={styles.sidebar.contactItem}>{contactInfo.phone}</div>}
-									{contactInfo.email && <div className={styles.sidebar.contactItem}>{contactInfo.email}</div>}
-									{contactInfo.address && <div className={styles.sidebar.contactItem}>{contactInfo.address}</div>}
+									{contactInfo.phone && <div className={sidebarStyles.contactItem}>{contactInfo.phone}</div>}
+									{contactInfo.email && <div className={sidebarStyles.contactItem}>{contactInfo.email}</div>}
+									{contactInfo.address && <div className={sidebarStyles.contactItem}>{contactInfo.address}</div>}
 									{contactInfo.linkedin && (
-										<div className={styles.sidebar.contactItem}>
+										<div className={sidebarStyles.contactItem}>
 											<a href={contactInfo.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
 												{contactInfo.linkedin}
 											</a>
 										</div>
 									)}
 									{contactInfo.website && (
-										<div className={styles.sidebar.contactItem}>
+										<div className={sidebarStyles.contactItem}>
 											<a href={contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
 												{contactInfo.website}
 											</a>
@@ -121,10 +122,10 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 						{/* Skills */}
 						{skills.length > 0 && (
 							<div>
-								<h2 className={styles.sidebar.sectionTitle}>{sidebarLabels.skills}</h2>
+								<h2 className={sidebarStyles.sectionTitle}>{sidebarLabels.skills}</h2>
 								<div className="mt-3 space-y-1">
 									{skills.map((skill, index) => (
-										<div key={index} className={styles.sidebar.skillItem}>
+										<div key={index} className={sidebarStyles.skillItem}>
 											{skill.name}
 										</div>
 									))}
@@ -135,10 +136,10 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 						{/* Certifications */}
 						{certifications.length > 0 && (
 							<div>
-								<h2 className={styles.sidebar.sectionTitle}>{sidebarLabels.certifications}</h2>
+								<h2 className={sidebarStyles.sectionTitle}>{sidebarLabels.certifications}</h2>
 								<div className="mt-3 space-y-1">
 									{certifications.map((cert, index) => (
-										<div key={index} className={styles.sidebar.skillItem}>
+										<div key={index} className={sidebarStyles.skillItem}>
 											{cert.name}
 										</div>
 									))}
@@ -149,10 +150,10 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 						{/* Languages */}
 						{languages.length > 0 && (
 							<div>
-								<h2 className={styles.sidebar.sectionTitle}>{sidebarLabels.languages}</h2>
+								<h2 className={sidebarStyles.sectionTitle}>{sidebarLabels.languages}</h2>
 								<div className="mt-3 space-y-1">
 									{languages.map((lang, index) => (
-										<div key={index} className={styles.sidebar.skillItem}>
+										<div key={index} className={sidebarStyles.skillItem}>
 											{lang.name} ({lang.proficiency})
 										</div>
 									))}
@@ -177,14 +178,14 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 						<section className={styles.section.container}>
 							<h2 className={styles.section.title}>Experience</h2>
 							{experiences.map((exp, index) => {
-								const startDate = exp.startDate.trim()
-								const endDate = exp.endDate.trim()
+								const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString() : ''
+								const endDate = exp.endDate ? new Date(exp.endDate).toLocaleDateString() : ''
 								const displayEndDate = endDate || 'Present'
 
 								return (
 									<div key={index} className="mt-3">
 										<div className="flex justify-between items-center">
-											<h3 className={styles.experience.jobTitle}>{exp.jobTitle}</h3>
+											<h3 className={styles.experience.role}>{exp.role}</h3>
 											{startDate && (
 												<span className={styles.experience.dateRange}>
 													{startDate} - {displayEndDate}
@@ -217,7 +218,7 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 							<h2 className={styles.section.title}>Projects</h2>
 							{projects.map((project, index) => (
 								<div key={index} className="mt-3">
-									<h3 className={styles.project.name}>{project.name}</h3>
+									<h3 className={styles.project.title}>{project.title}</h3>
 									{project.description && <p className={styles.project.description}>{project.description}</p>}
 									{project.technologies && <p className={styles.project.technologies}>Technologies: {project.technologies}</p>}
 									{project.link && (
@@ -264,7 +265,7 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 											{edu.fieldOfStudy ? ` - ${edu.fieldOfStudy}` : ''}
 										</h3>
 										<span className={styles.education.dateRange}>
-											{edu.startDate} - {edu.endDate || 'Present'}
+											{edu.startDate ? new Date(edu.startDate).toLocaleDateString() : ''} - {edu.endDate ? new Date(edu.endDate).toLocaleDateString() : 'Present'}
 										</span>
 									</div>
 									<p className={styles.education.school}>{edu.school}</p>
@@ -325,14 +326,14 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 				<section className={styles.section.container}>
 					<h2 className={styles.section.title}>Experience</h2>
 					{experiences.map((exp, index) => {
-						const startDate = exp.startDate.trim()
-						const endDate = exp.endDate.trim()
+						const startDate = exp.startDate ? new Date(exp.startDate).toLocaleDateString() : ''
+						const endDate = exp.endDate ? new Date(exp.endDate).toLocaleDateString() : ''
 						const displayEndDate = endDate || 'Present'
 
 						return (
 							<div key={index} className="mt-3">
 								<div className="flex justify-between items-center">
-									<h3 className={styles.experience.jobTitle}>{exp.jobTitle}</h3>
+									<h3 className={styles.experience.role}>{exp.role}</h3>
 									{startDate && (
 										<span className={styles.experience.dateRange}>
 											{startDate} - {displayEndDate}
@@ -365,7 +366,7 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 					<h2 className={styles.section.title}>Projects</h2>
 					{projects.map((project, index) => (
 						<div key={index} className="mt-3">
-							<h3 className={styles.project.name}>{project.name}</h3>
+							<h3 className={styles.project.title}>{project.title}</h3>
 							{project.description && <p className={styles.project.description}>{project.description}</p>}
 							{project.technologies && <p className={styles.project.technologies}>Technologies: {project.technologies}</p>}
 							{project.link && (
@@ -449,7 +450,7 @@ function BaseResumeLayout({ resumeData, styles }: { resumeData: ResumeData; styl
 									{edu.fieldOfStudy ? ` - ${edu.fieldOfStudy}` : ''}
 								</h3>
 								<span className={styles.education.dateRange}>
-									{edu.startDate} - {edu.endDate || 'Present'}
+									{edu.startDate ? new Date(edu.startDate).toLocaleDateString() : ''} - {edu.endDate ? new Date(edu.endDate).toLocaleDateString() : 'Present'}
 								</span>
 							</div>
 							<p className={styles.education.school}>{edu.school}</p>
@@ -477,13 +478,13 @@ function ModernTemplate({ resumeData }: { resumeData: ResumeData }) {
 			container: 'mt-6'
 		},
 		experience: {
-			jobTitle: 'text-lg font-bold text-text-main',
+			role: 'text-lg font-bold text-text-main',
 			dateRange: 'text-sm font-medium text-text-subtle',
 			company: 'text-md font-semibold text-text-subtle',
 			description: 'list-disc pl-5 mt-2 text-sm text-text-main space-y-1'
 		},
 		project: {
-			name: 'text-base font-bold text-text-main',
+			title: 'text-base font-bold text-text-main',
 			description: 'text-sm text-text-main mt-1',
 			technologies: 'text-sm text-text-subtle mt-1',
 			link: 'text-sm text-primary hover:underline'
@@ -522,13 +523,13 @@ function ClassicTemplate({ resumeData }: { resumeData: ResumeData }) {
 			container: 'mt-6'
 		},
 		experience: {
-			jobTitle: 'text-lg font-bold text-text-main',
+			role: 'text-lg font-bold text-text-main',
 			dateRange: 'text-sm font-medium text-text-subtle',
 			company: 'text-md font-semibold text-text-subtle',
 			description: 'list-disc pl-5 mt-2 text-sm text-text-main space-y-1'
 		},
 		project: {
-			name: 'text-base font-bold text-text-main',
+			title: 'text-base font-bold text-text-main',
 			description: 'text-sm text-text-main mt-1',
 			technologies: 'text-sm text-text-subtle mt-1',
 			link: 'text-sm text-primary hover:underline'
@@ -567,13 +568,13 @@ function MinimalistTemplate({ resumeData }: { resumeData: ResumeData }) {
 			container: 'mt-6'
 		},
 		experience: {
-			jobTitle: 'text-lg font-bold text-text-main',
+			role: 'text-lg font-bold text-text-main',
 			dateRange: 'text-sm font-medium text-text-subtle',
 			company: 'text-md font-semibold text-text-subtle',
 			description: 'list-disc pl-5 mt-2 text-sm text-text-main space-y-1'
 		},
 		project: {
-			name: 'text-base font-bold text-text-main',
+			title: 'text-base font-bold text-text-main',
 			description: 'text-sm text-text-main mt-1',
 			technologies: 'text-sm text-text-subtle mt-1',
 			link: 'text-sm text-primary hover:underline'
@@ -622,13 +623,13 @@ function CreativeTemplate({ resumeData }: { resumeData: ResumeData }) {
 			container: 'mt-6'
 		},
 		experience: {
-			jobTitle: 'text-lg font-bold text-text-main',
+			role: 'text-lg font-bold text-text-main',
 			dateRange: 'text-sm font-medium text-text-subtle',
 			company: 'text-md font-semibold text-text-subtle',
 			description: 'list-disc pl-5 mt-2 text-sm text-text-main space-y-1'
 		},
 		project: {
-			name: 'text-base font-bold text-text-main',
+			title: 'text-base font-bold text-text-main',
 			description: 'text-sm text-text-main mt-1',
 			technologies: 'text-sm text-text-subtle mt-1',
 			link: 'text-sm text-primary hover:underline'

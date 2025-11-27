@@ -9,7 +9,7 @@ import { userAtom } from '@/stores/user'
 export default function HomePage() {
 	const [user] = useAtom(userAtom)
 
-	const isAuthenticated = user;
+	const isAuthenticated = !!user;
 
 	const cardVariants = {
 		hidden: { opacity: 0, y: 20 },
@@ -25,7 +25,7 @@ export default function HomePage() {
 
 	return (
 		<div className="relative flex min-h-screen w-full flex-col">
-			<Navbar isAuthenticated={isAuthenticated} />
+			<Navbar isAuthenticated={isAuthenticated} user={user} />
 
 			<main className="flex flex-1 flex-col">
 				<Hero isAuthenticated={isAuthenticated} />

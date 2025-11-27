@@ -11,31 +11,25 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { UsageDisplay } from '@/components/UsageDisplay'
 import { SubscriptionModal } from '@/components/SubscriptionModal'
 import { LayoutDashboard, FileText, Settings, Menu, Plus, Edit, Trash2, TrendingUp, Award } from 'lucide-react'
+import { User } from '@prisma-generated/client'
+import { Resume } from '@prisma-generated/client'
+import { TemplatePreview } from '@/components/dashboard/TemplatePreview'
+import { useRouter } from 'next/navigation'
+import { deleteResume } from '@/lib/utils'
 
 interface DashboardClientProps {
-	user: {
-		id: string
-		userId: string
-		name: string
-		email: string
-		usageCount: number
-		usageLimit: number
-	}
-	resumes: Array<{
-		id: string
-		title: string
-		lastEdited: string
-		status: 'draft' | 'complete'
-		description: string
-	}>
+	user: User
+	resumes: Resume[]
 }
 
 export default function DashboardClient({ user, resumes }: DashboardClientProps) {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 	const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false)
 
-	const userInitials = user.name.split(' ').map((word) => word[0].toUpperCase()).join('')
-	const firstName = user.name.split(' ')[0]
+	const router = useRouter();
+
+	const userInitials = user?.name?.split(' ').map((word) => word[0].toUpperCase()).join('') ?? '[Redacted]'
+	const firstName = user?.name?.split(' ')[0] ?? '[Redacted]'
 
 	const SidebarContent = () => (
 		<>
@@ -43,7 +37,7 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 			<div className="p-4">
 				<div className="flex items-center gap-2">
 					<div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-						<span className="text-primary-foreground font-bold text-sm">RR</span>
+						<span className="text-primary-foreground font-bold text-sm">{userInitials}</span>
 					</div>
 					<span className="text-lg font-semibold text-dark">RoboResume</span>
 				</div>
@@ -62,6 +56,12 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 					<Button variant="ghost" className="w-full justify-start gap-2 text-dark hover:bg-yellow/50">
 						<FileText className="h-4 w-4" />
 						Resume Builder
+					</Button>
+				</Link>
+				<Link href="/dashboard/cover-letters" onClick={() => setIsSidebarOpen(false)}>
+					<Button variant="ghost" className="w-full justify-start gap-2 text-dark hover:bg-yellow/50">
+						<Edit className="h-4 w-4" />
+						Cover Letters
 					</Button>
 				</Link>
 				<Link href="/dashboard/settings" onClick={() => setIsSidebarOpen(false)}>
@@ -140,7 +140,7 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 									{/* Right Section: Create Button */}
 									<Button size="lg" className="animate-pulse-soft">
 										<Plus className="mr-2 h-5 w-5" />
-										<Link href="/builder/builder">Create Resume</Link>
+										<Link href="/builder">Create Resume</Link>
 									</Button>
 								</div>
 							</motion.div>
@@ -204,45 +204,34 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 								{/* Resume Grid */}
 								{resumes.length > 0 ? (
 									<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-										{resumes.map((resume) => (
-											<motion.div
-												key={resume.id}
-												whileHover={{ scale: 1.1 }}
-												transition={{ duration: 0.3 }}
-												className="group relative"
-											>
-												<Card className="h-full cursor-pointer hover:shadow-lg transition-shadow border border-yellow bg-yellow">
-													<CardHeader>
-														<CardTitle>{resume.title}</CardTitle>
-														<CardDescription>{resume.description}</CardDescription>
-													</CardHeader>
-													<CardContent>
-														<div className="flex items-center justify-between text-sm text-dark/70">
-															<span>Last edited: {resume.lastEdited}</span>
-															<span
-																className={
-																	resume.status === 'complete'
-																		? 'text-primary font-medium'
-																		: 'text-secondary-accent font-medium'
-																}
-															>
-																{resume.status}
-															</span>
-														</div>
-													</CardContent>
-												</Card>
+										{resumes.map((resume: Resume) => {
 
-												{/* Hover Buttons */}
-												<div className="absolute top-4 right-4 flex gap-2 hover-reveal">
-													<Button size="icon" variant="secondary" aria-label="Edit resume">
-														<Edit className="h-4 w-4" />
-													</Button>
-													<Button size="icon" variant="destructive" aria-label="Delete resume">
-														<Trash2 className="h-4 w-4" />
-													</Button>
-												</div>
-											</motion.div>
-										))}
+											return (
+												<motion.div
+													key={resume.id}
+													whileHover={{ scale: 1.1 }}
+													transition={{ duration: 0.3 }}
+													className="group relative"
+												>
+													{/* <ResumePreview > */}
+
+													<TemplatePreview template={resume.template ?? "an error occurred"} />
+													{/* Hover Buttons */}
+													<div className="absolute top-4 right-4 flex gap-2 hover-reveal">
+														<Button size="icon" variant="secondary" aria-label="Edit resume" onClick={() => router.push(`/builder?resumeId=${resume.id}`)}>
+															<Edit className="h-4 w-4" />
+														</Button>
+														<Button size="icon" variant="destructive" aria-label="Delete resume" onClick={async () => {
+															const deleted = await deleteResume(resume.id)
+															if (deleted) {
+																router.refresh()
+															}
+														}}>
+															<Trash2 className="h-4 w-4" />
+														</Button>
+													</div>
+												</motion.div>)
+										})}
 									</div>
 								) : (
 									/* Empty State */
@@ -257,7 +246,7 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 											</div>
 											<Button size="lg" className="mt-4">
 												<Plus className="mr-2 h-5 w-5" />
-												<Link href="/dashboard/builder">Create Resume</Link>
+												<Link href="/builder">Create Resume</Link>
 											</Button>
 										</CardContent>
 									</Card>
@@ -267,7 +256,7 @@ export default function DashboardClient({ user, resumes }: DashboardClientProps)
 					</main>
 				</motion.div>
 			</div>
-			<SubscriptionModal open={isSubscriptionModalOpen} onOpenChange={setIsSubscriptionModalOpen} userId={user.userId} />
+			<SubscriptionModal open={isSubscriptionModalOpen} onOpenChange={setIsSubscriptionModalOpen} userId={user.id} />
 		</>
 	)
 }

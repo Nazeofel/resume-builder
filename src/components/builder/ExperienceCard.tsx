@@ -8,7 +8,7 @@ import { jobs_title } from '@/lib/arrays';
 
 interface ExperienceCardProps {
   experience: Experience;
-  onUpdate: (field: keyof Experience, value: string) => void;
+  onUpdate: (field: keyof Experience, value: any) => void;
   onDelete: () => void;
   index: number;
 }
@@ -30,14 +30,14 @@ export function ExperienceCard({ experience, onUpdate, onDelete, index }: Experi
 
       {/* Fields */}
       <div className="flex flex-col gap-6">
-        {/* Row 1: Job Title & Company */}
+        {/* Row 1: Role & Company */}
         <div className="flex flex-col md:flex-row gap-6">
           <div className="min-w-40 flex-1 flex flex-col gap-2">
-            <label className="text-base font-medium text-text-main">Job Title</label>
+            <label className="text-base font-medium text-text-main">Role</label>
             <Combobox
-              value={experience.jobTitle}
-              onSelect={(value) => onUpdate('jobTitle', value)}
-              placeholder="Select job title"
+              value={experience.role}
+              onSelect={(value) => onUpdate('role', value)}
+              placeholder="Select role"
               searchPlaceholder="Search roles..."
               staticOptions={jobs_title}
             />
@@ -59,7 +59,7 @@ export function ExperienceCard({ experience, onUpdate, onDelete, index }: Experi
             <BuilderFormField
               id={`location-${experience.id}`}
               label="Location"
-              value={experience.location}
+              value={experience.location || ''}
               onChange={(e) => onUpdate('location', e.target.value)}
               placeholder="e.g., San Francisco, CA"
             />
@@ -68,15 +68,15 @@ export function ExperienceCard({ experience, onUpdate, onDelete, index }: Experi
             <div className="flex-1">
               <DatePicker
                 label="Start Date"
-                value={experience.startDate}
-                onChange={(e) => onUpdate('startDate', e.target.value)}
+                value={experience.startDate ? new Date(experience.startDate).toISOString().split('T')[0] : ''}
+                onChange={(e) => onUpdate('startDate', e.target.value ? new Date(e.target.value) : null)}
               />
             </div>
             <div className="flex-1">
               <DatePicker
                 label="End Date"
-                value={experience.endDate}
-                onChange={(e) => onUpdate('endDate', e.target.value)}
+                value={experience.endDate ? new Date(experience.endDate).toISOString().split('T')[0] : ''}
+                onChange={(e) => onUpdate('endDate', e.target.value ? new Date(e.target.value) : null)}
               />
             </div>
           </div>
@@ -87,7 +87,7 @@ export function ExperienceCard({ experience, onUpdate, onDelete, index }: Experi
           <BuilderTextarea
             id={`experience-description-${experience.id}`}
             label="Description"
-            value={experience.description}
+            value={experience.description || ''}
             onChange={(e) => onUpdate('description', e.target.value)}
             placeholder="Describe your responsibilities and achievements..."
             rows={4}

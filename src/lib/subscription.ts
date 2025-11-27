@@ -1,4 +1,4 @@
-import { SubscriptionStatus, User } from '@prisma/client'
+import { User } from '@prisma-generated/client'
 import { prisma } from './prisma'
 
 /**
@@ -50,13 +50,20 @@ export function canUseAIFeatures(user: Pick<User, 'subscriptionStatus' | 'usageC
  *
  * Note: This should be called after successful AI operations.
  */
-export async function incrementUsage(userId: string): Promise<User> {
-	return await prisma.user.update({
-		where: { userId },
+export async function incrementUsage(userId: string): Promise<User | null> {
+
+	const update = await prisma.user.update({
+		where: { id: userId },
 		data: {
 			usageCount: {
 				increment: 1
 			}
 		}
 	})
+
+	if (!update) {
+		console.error('Couldnt not update usage...')
+		return null
+	}
+	return update
 }
